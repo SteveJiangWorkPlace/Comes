@@ -1,0 +1,67 @@
+# Root .gitignore for Comes Project
+# This file ensures sensitive files are not committed to version control
+
+# ============ Environment Variables ============
+# Never commit environment variable files
+.env
+.env.local
+.env.*.local
+!.env.example  # Example files are okay to commit
+
+# ============ Python ============
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# ============ Node.js/JavaScript ============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============ Frontend Build Output ============
+dist/
+dist-ssr/
+*.tmp
+*.temp
+
+# ============ Backend Uploads ============
+uploads/
+*.upload
+
+# ============ IDE Files ============
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ============ OS Files ============
+.DS_Store
+Thumbs.db
+
+# ============ Logs ============
+*.log
+logs/
+
+# ============ Project Specific ============
+# Backend specific (already covered in backend/.gitignore)
+backend/uploads/
+backend/*.env
+
+# Frontend specific (already covered in frontend/.gitignore)
+frontend/dist/
+frontend/node_modules/
+frontend/*.env.local

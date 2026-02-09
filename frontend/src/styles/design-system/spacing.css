@@ -1,0 +1,94 @@
+/* Comes Spacing System - Based on 4px unit */
+:root {
+  /* Base unit */
+  --spacing-unit: 4px;
+
+  /* Spacing scale */
+  --spacing-0: 0;
+  --spacing-1: calc(var(--spacing-unit) * 1); /* 4px */
+  --spacing-2: calc(var(--spacing-unit) * 2); /* 8px */
+  --spacing-3: calc(var(--spacing-unit) * 3); /* 12px */
+  --spacing-4: calc(var(--spacing-unit) * 4); /* 16px */
+  --spacing-5: calc(var(--spacing-unit) * 5); /* 20px */
+  --spacing-6: calc(var(--spacing-unit) * 6); /* 24px */
+  --spacing-8: calc(var(--spacing-unit) * 8); /* 32px */
+  --spacing-10: calc(var(--spacing-unit) * 10); /* 40px */
+  --spacing-12: calc(var(--spacing-unit) * 12); /* 48px */
+  --spacing-16: calc(var(--spacing-unit) * 16); /* 64px */
+  --spacing-20: calc(var(--spacing-unit) * 20); /* 80px */
+  --spacing-24: calc(var(--spacing-unit) * 24); /* 96px */
+  --spacing-32: calc(var(--spacing-unit) * 32); /* 128px */
+
+  /* Container widths */
+  --container-xs: 320px;
+  --container-sm: 480px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* Component spacing */
+  --header-height: 64px;
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 64px;
+  --footer-height: 48px;
+  --input-height: 40px;
+  --button-height: 40px;
+  --card-padding: var(--spacing-6);
+  --section-padding: var(--spacing-8);
+  --page-padding: var(--spacing-6);
+
+  /* Border radii */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-base: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Border widths */
+  --border-width-none: 0;
+  --border-width-thin: 1px;
+  --border-width-medium: 2px;
+  --border-width-thick: 3px;
+
+  /* Shadows */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* Z-index scale */
+  --z-index-negative: -1;
+  --z-index-0: 0;
+  --z-index-10: 10;
+  --z-index-20: 20;
+  --z-index-30: 30;
+  --z-index-40: 40;
+  --z-index-50: 50;
+  --z-index-auto: auto;
+
+  /* Component z-index */
+  --z-index-dropdown: var(--z-index-10);
+  --z-index-sticky: var(--z-index-20);
+  --z-index-fixed: var(--z-index-30);
+  --z-index-modal-backdrop: var(--z-index-40);
+  --z-index-modal: var(--z-index-50);
+  --z-index-popover: var(--z-index-50);
+  --z-index-tooltip: var(--z-index-50);
+}
+
+/* Responsive breakpoints */
+@custom-media --viewport-xs (min-width: 320px);
+@custom-media --viewport-sm (min-width: 480px);
+@custom-media --viewport-md (min-width: 768px);
+@custom-media --viewport-lg (min-width: 1024px);
+@custom-media --viewport-xl (min-width: 1280px);
+@custom-media --viewport-2xl (min-width: 1536px);

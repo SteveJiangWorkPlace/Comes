@@ -1,0 +1,35 @@
+# Python dependencies for Comes backend - Student Application Information Module
+
+# Web framework
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# File upload handling
+werkzeug>=3.0.0
+
+# Google Generative AI
+google-genai>=1.0.0
+
+# PDF processing
+PyPDF2>=3.0.0
+pdfplumber>=0.10.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Office document processing
+python-docx>=1.1.0
+openpyxl>=3.1.0
+
+# Text extraction from images (optional, for OCR)
+pytesseract>=0.3.10
+
+# Utilities
+python-multipart>=0.0.6
+
+# Development
+black>=23.0.0
+flake8>=6.0.0

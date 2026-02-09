@@ -1,0 +1,240 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* Label row */
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+/* Label */
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.requiredIndicator {
+  color: var(--color-error);
+}
+
+/* Textarea wrapper */
+.textareaWrapper {
+  position: relative;
+}
+
+/* Base textarea styles */
+.textarea {
+  width: 100%;
+  background-color: var(--color-input-bg);
+  border: var(--border-width-thin) solid var(--color-input-border);
+  border-radius: var(--radius-base);
+  color: var(--color-input-text);
+  font-family: var(--font-family-sans);
+  transition: all 150ms ease;
+  outline: none;
+  resize: vertical;
+  appearance: none;
+  line-height: var(--line-height-normal);
+}
+
+.textarea:focus {
+  border-color: var(--color-input-focus);
+  box-shadow: var(--shadow-input-focus);
+}
+
+.textarea::placeholder {
+  color: var(--color-input-placeholder);
+  opacity: 1;
+}
+
+/* Auto resize */
+.autoResize {
+  resize: none;
+  overflow-y: hidden;
+}
+
+/* Sizes */
+.size-small {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  min-height: 80px;
+}
+
+.size-medium {
+  padding: var(--spacing-4) var(--spacing-5);
+  font-size: var(--font-size-base);
+  min-height: 100px;
+}
+
+.size-large {
+  padding: var(--spacing-5) var(--spacing-6);
+  font-size: var(--font-size-lg);
+  min-height: 120px;
+}
+
+/* Variants */
+.variant-default {
+  background-color: var(--color-input-bg);
+}
+
+.variant-filled {
+  background-color: var(--color-gray-50);
+  border-color: transparent;
+}
+
+.variant-filled:hover {
+  background-color: var(--color-gray-100);
+}
+
+.variant-filled:focus {
+  background-color: var(--color-white);
+  border-color: var(--color-input-focus);
+}
+
+.variant-borderless {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: var(--border-width-thin) solid var(--color-input-border);
+}
+
+.variant-borderless:focus {
+  border-bottom-color: var(--color-input-focus);
+  box-shadow: none;
+}
+
+/* States */
+.error {
+  border-color: var(--color-error);
+}
+
+.error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px var(--color-error-light);
+}
+
+.success {
+  border-color: var(--color-success);
+}
+
+.success:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-light);
+}
+
+.disabled {
+  background-color: var(--color-disabled);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+  opacity: 0.7;
+  resize: none;
+}
+
+.disabled:hover {
+  border-color: var(--color-input-border);
+}
+
+/* Character count */
+.characterCount {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.characterCountRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-1);
+}
+
+.nearLimit {
+  color: var(--color-warning);
+}
+
+.overLimit {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Messages */
+.message {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  margin-top: var(--spacing-1);
+}
+
+.message-error {
+  color: var(--color-error);
+}
+
+.message-success {
+  color: var(--color-success);
+}
+
+.message-helper {
+  color: var(--color-text-tertiary);
+}
+
+/* Scrollbar styling */
+.textarea::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: var(--radius-full);
+}
+
+.textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .labelRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-2);
+  }
+
+  .characterCount {
+    align-self: flex-end;
+  }
+
+  .size-large {
+    padding: var(--spacing-4) var(--spacing-5);
+    font-size: var(--font-size-base);
+    min-height: 100px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .textarea {
+    border: var(--border-width-thin) solid var(--color-gray-300);
+    background-color: transparent;
+  }
+}

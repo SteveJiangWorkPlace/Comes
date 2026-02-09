@@ -1,0 +1,122 @@
+/**
+ * AppLayout styles
+ */
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-background);
+  transition: all 0.2s ease;
+}
+
+/* Sidebar section */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  background-color: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-border-subtle);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.collapsed {
+  /* Collapsed state styles */
+}
+
+/* Content section */
+.content {
+  flex: 1;
+  transition: all 0.2s ease;
+  overflow-x: hidden;
+  min-height: 100vh;
+  padding: var(--spacing-6);
+  background-color: var(--color-background);
+}
+
+.content.expanded {
+  /* Expanded when sidebar is hidden or collapsed */
+}
+
+/* Sidebar hidden state */
+.sidebarHidden .content {
+  margin-left: 0 !important;
+}
+
+/* Sidebar toggle overlay for mobile */
+.sidebarToggleOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 20px;
+  z-index: 99;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebarToggleOverlay:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .sidebar:not(.collapsed) {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .content {
+    margin-left: 0 !important;
+    padding: var(--spacing-4);
+  }
+
+  .sidebarToggleOverlay {
+    display: none;
+  }
+
+  /* Show sidebar toggle button on mobile */
+  .container:not(.sidebarHidden)::before {
+    content: '';
+    position: fixed;
+    top: var(--spacing-4);
+    left: var(--spacing-4);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-primary);
+    z-index: 101;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: all 0.2s ease;
+  }
+
+  .container:not(.sidebarHidden)::before:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* Print styles */
+@media print {
+  .sidebar {
+    display: none;
+  }
+
+  .content {
+    margin-left: 0 !important;
+    padding: 0;
+  }
+}

@@ -1,0 +1,25 @@
+# Render deployment configuration for Comes backend
+# This is a placeholder - update with actual backend stack
+
+services:
+  - type: web
+    name: comes-backend
+    runtime: python  # Change to node, go, etc. based on your backend stack
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      # Add your backend environment variables here:
+      # - key: DATABASE_URL
+      #   value: your-database-url
+      # - key: JWT_SECRET
+      #   value: your-secret-key
+
+# Uncomment if using database
+# databases:
+#   - name: comes-db
+#     databaseName: comes
+#     user: comes_user

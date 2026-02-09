@@ -1,0 +1,6 @@
+/* Comes Styles Entry Point */
+@import './globals/reset.css';
+@import './globals/base.css';
+@import './utils/mixins.css';
+
+/* Design system variables are imported via base.css */

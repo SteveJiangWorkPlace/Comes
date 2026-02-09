@@ -1,0 +1,93 @@
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  transition: all 150ms ease;
+  line-height: 1;
+}
+
+/* Variants */
+.variant-default {
+  color: var(--color-text-primary);
+}
+
+.variant-primary {
+  color: var(--color-primary);
+}
+
+.variant-secondary {
+  color: var(--color-text-secondary);
+}
+
+.variant-success {
+  color: var(--color-success);
+}
+
+.variant-warning {
+  color: var(--color-warning);
+}
+
+.variant-error {
+  color: var(--color-error);
+}
+
+.variant-info {
+  color: var(--color-info);
+}
+
+/* Clickable */
+.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.clickable:active {
+  transform: scale(0.95);
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
+}
+
+/* Spin animation */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Size classes (for utility usage) */
+.size-xs {
+  font-size: 12px !important;
+}
+
+.size-sm {
+  font-size: 16px !important;
+}
+
+.size-md {
+  font-size: 20px !important;
+}
+
+.size-lg {
+  font-size: 24px !important;
+}
+
+.size-xl {
+  font-size: 32px !important;
+}

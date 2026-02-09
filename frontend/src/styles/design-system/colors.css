@@ -1,0 +1,99 @@
+/* Comes Color System - Inspired by Otium_wip */
+:root {
+  /* Base Colors */
+  --color-black: #110d0c;
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Semantic Colors */
+  --color-primary: var(--color-black);
+  --color-primary-light: var(--color-gray-800);
+  --color-primary-dark: var(--color-black);
+
+  --color-secondary: var(--color-gray-300);
+  --color-secondary-light: var(--color-gray-200);
+  --color-secondary-dark: var(--color-gray-400);
+
+  --color-background: var(--color-white);
+  --color-surface: var(--color-white);
+  --color-surface-elevated: var(--color-gray-50);
+
+  --color-text-primary: var(--color-black);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-inverse: var(--color-white);
+
+  /* Functional Colors */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-success-dark: #059669;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #d97706;
+
+  --color-error: #ef4444;
+  --color-error-light: #fee2e2;
+  --color-error-dark: #dc2626;
+
+  --color-info: #3b82f6;
+  --color-info-light: #dbeafe;
+  --color-info-dark: #1d4ed8;
+
+  /* Component Colors */
+  --color-sidebar-bg: var(--color-surface);
+  --color-sidebar-active: var(--color-primary);
+  --color-sidebar-hover: var(--color-gray-100);
+  --color-sidebar-text: var(--color-text-primary);
+  --color-sidebar-text-active: var(--color-text-inverse);
+
+  --color-button-primary-bg: var(--color-primary);
+  --color-button-primary-text: var(--color-text-inverse);
+  --color-button-primary-hover: var(--color-primary-dark);
+
+  --color-button-secondary-bg: var(--color-secondary);
+  --color-button-secondary-text: var(--color-text-primary);
+  --color-button-secondary-hover: var(--color-secondary-dark);
+
+  --color-card-bg: var(--color-surface);
+  --color-card-border: var(--color-gray-200);
+  --color-card-shadow: rgba(0, 0, 0, 0.05);
+
+  --color-input-bg: var(--color-white);
+  --color-input-border: var(--color-gray-300);
+  --color-input-focus: var(--color-primary);
+  --color-input-text: var(--color-text-primary);
+  --color-input-placeholder: var(--color-gray-400);
+
+  /* State Colors */
+  --color-hover-overlay: rgba(0, 0, 0, 0.04);
+  --color-focus-ring: rgba(17, 13, 12, 0.2);
+  --color-disabled: var(--color-gray-200);
+  --color-disabled-text: var(--color-gray-400);
+
+  /* Transparent Variants */
+  --color-black-transparent-10: rgba(17, 13, 12, 0.1);
+  --color-black-transparent-20: rgba(17, 13, 12, 0.2);
+  --color-black-transparent-50: rgba(17, 13, 12, 0.5);
+  --color-white-transparent-10: rgba(255, 255, 255, 0.1);
+  --color-white-transparent-20: rgba(255, 255, 255, 0.2);
+  --color-white-transparent-50: rgba(255, 255, 255, 0.5);
+}
+
+/* Dark theme placeholder (for future implementation) */
+[data-theme='dark'] {
+  --color-primary: var(--color-white);
+  --color-background: var(--color-black);
+  --color-surface: var(--color-gray-900);
+  --color-text-primary: var(--color-white);
+  /* TODO: Complete dark theme variables */
+}
