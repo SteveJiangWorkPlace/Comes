@@ -23,29 +23,7 @@ export const USER_ENDPOINTS = {
   UPDATE_CREDITS: (id: string) => `/users/${id}/credits`,
 }
 
-// Module 1 endpoints (placeholder)
-export const MODULE1_ENDPOINTS = {
-  PROCESS: '/module1/process',
-  GET_HISTORY: '/module1/history',
-  GET_RESULT: (id: string) => `/module1/results/${id}`,
-  DELETE_RESULT: (id: string) => `/module1/results/${id}`,
-}
 
-// Module 2 endpoints (placeholder)
-export const MODULE2_ENDPOINTS = {
-  PROCESS: '/module2/process',
-  GET_HISTORY: '/module2/history',
-  GET_RESULT: (id: string) => `/module2/results/${id}`,
-  DELETE_RESULT: (id: string) => `/module2/results/${id}`,
-}
-
-// Module 3 endpoints (placeholder)
-export const MODULE3_ENDPOINTS = {
-  PROCESS: '/module3/process',
-  GET_HISTORY: '/module3/history',
-  GET_RESULT: (id: string) => `/module3/results/${id}`,
-  DELETE_RESULT: (id: string) => `/module3/results/${id}`,
-}
 
 // Student Application Information endpoints
 export const STUDENT_APPLICATION_ENDPOINTS = {
@@ -86,27 +64,16 @@ export const SYSTEM_ENDPOINTS = {
   CONFIG: '/config',
 }
 
-// Placeholder endpoints for development
-export const TODO_ENDPOINTS = {
-  MODULE1_TODO: '/todo/module1',
-  MODULE2_TODO: '/todo/module2',
-  MODULE3_TODO: '/todo/module3',
-  ADMIN_TODO: '/todo/admin',
-}
 
 // Export all endpoints
 export const ENDPOINTS = {
   AUTH: AUTH_ENDPOINTS,
   USER: USER_ENDPOINTS,
-  MODULE1: MODULE1_ENDPOINTS,
-  MODULE2: MODULE2_ENDPOINTS,
-  MODULE3: MODULE3_ENDPOINTS,
   STUDENT_APPLICATION: STUDENT_APPLICATION_ENDPOINTS,
   TRANSCRIPT_VERIFICATION: TRANSCRIPT_VERIFICATION_ENDPOINTS,
   ADMIN: ADMIN_ENDPOINTS,
   API_KEYS: API_KEYS_ENDPOINTS,
   SYSTEM: SYSTEM_ENDPOINTS,
-  TODO: TODO_ENDPOINTS,
 } as const
 
 export default ENDPOINTS

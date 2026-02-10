@@ -17,8 +17,8 @@ const Module3: React.FC = () => {
         {/* Page header */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <h1 className={styles.title}>模块三功能</h1>
-            <p className={styles.subtitle}>模块三功能描述占位符，此处填写具体功能说明</p>
+            <h1 className={styles.title}>文档中心</h1>
+            <p className={styles.subtitle}>文档编辑、管理和协作功能</p>
           </div>
           <div className={styles.headerRight}>
             <Button

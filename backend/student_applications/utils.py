@@ -118,7 +118,7 @@ def extract_text_from_txt(filepath: str) -> str:
         with open(filepath, 'r', encoding='utf-8') as file:
             return file.read()
     except UnicodeDecodeError:
-        # Try different encodings
+        # Try different encodings for decode error
         encodings = ['latin-1', 'iso-8859-1', 'cp1252']
         for encoding in encodings:
             try:
@@ -126,6 +126,8 @@ def extract_text_from_txt(filepath: str) -> str:
                     return file.read()
             except:
                 continue
+        return ""
+    except FileNotFoundError:
         return ""
 
 def extract_text_from_file(filepath: str, content_type: str = None) -> str:

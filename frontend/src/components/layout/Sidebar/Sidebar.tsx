@@ -9,7 +9,6 @@ import classNames from 'classnames'
 import { useAuth } from '../../../hooks/useAuth'
 import { useApiKeys } from '../../../hooks/useApiKeys'
 import SidebarItem from './SidebarItem'
-import Icon from '../../ui/Icon/Icon'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -42,21 +41,21 @@ const Sidebar: React.FC<SidebarProps> = ({
     () => [
       {
         key: 'module1',
-        label: '模块一',
+        label: '智能文档分析',
         icon: 'dashboard',
         path: '/module1',
         role: ['user', 'admin'],
       },
       {
         key: 'module2',
-        label: '模块二',
+        label: '成绩单认证',
         icon: 'barChart',
         path: '/module2',
         role: ['user', 'admin'],
       },
       {
         key: 'module3',
-        label: '模块三',
+        label: '文档中心',
         icon: 'file',
         path: '/module3',
         role: ['user', 'admin'],
@@ -194,7 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
           title={collapsed ? '展开侧边栏' : '折叠侧边栏'}
         >
-          <Icon name={collapsed ? 'menuUnfold' : 'menuFold'} />
+          {collapsed ? '▶' : '◀'}
         </button>
       </div>
 
@@ -236,13 +235,11 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={handleApiKeysClick}
               title={hasMissingApiKeys ? '缺少必要的API密钥' : '管理API密钥'}
             >
-              <Icon name="key" />
               <span>API密钥</span>
               {hasMissingApiKeys && <span className={styles.warningBadge}>!</span>}
             </button>
 
             <button className={styles.footerButton} onClick={handleLogout} title="退出登录">
-              <Icon name="logout" />
               <span>退出</span>
             </button>
           </>
@@ -255,7 +252,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={handleApiKeysClick}
               title={hasMissingApiKeys ? '缺少必要的API密钥' : '管理API密钥'}
             >
-              <Icon name="key" />
+              <span>API</span>
               {hasMissingApiKeys && <span className={styles.warningBadgeCollapsed}>!</span>}
             </button>
 
@@ -264,7 +261,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               onClick={handleLogout}
               title="退出登录"
             >
-              <Icon name="logout" />
+              <span>退出</span>
             </button>
           </>
         )}
@@ -281,7 +278,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => setShowApiKeysModal(false)}
                 aria-label="关闭"
               >
-                <Icon name="close" />
+                关闭
               </button>
             </div>
             <div className={styles.modalContent}>
