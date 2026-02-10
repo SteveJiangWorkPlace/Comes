@@ -357,8 +357,8 @@ class TestStudentApplicationService:
 
     def test_generate_structured_summary_error(self, service):
         """Test summary generation when error occurs"""
-        # Pass invalid data to trigger exception
-        summary = service.generate_structured_summary({'invalid': 'data'})
+        # Pass data that will cause exception - applicant_info is not a dict
+        summary = service.generate_structured_summary({'applicant_info': 'not-a-dict'})
 
         assert '生成结构化总结时出错' in summary
 
@@ -612,7 +612,7 @@ class TestTranscriptVerificationService:
 
     def test_generate_structured_transcript_error(self, transcript_service):
         """Test structured transcript generation when error occurs"""
-        # Pass invalid data to trigger exception
-        structured = transcript_service.generate_structured_transcript({'invalid': 'data'})
+        # Pass data that will cause exception - student_info is not a dict
+        structured = transcript_service.generate_structured_transcript({'student_info': 'not-a-dict'})
 
         assert '生成结构化成绩单时出错' in structured

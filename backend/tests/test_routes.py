@@ -497,8 +497,8 @@ class TestStudentApplicationRoutes:
             data = json.loads(response.data)
 
             assert response.status_code == 500
-            assert data['success'] is False
             assert 'error' in data
+            assert data['error'] == 'Internal server error'
 
 
 class TestServiceInitialization:

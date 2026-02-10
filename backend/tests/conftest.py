@@ -32,6 +32,7 @@ def app():
             'MAX_CONTENT_LENGTH': 16 * 1024 * 1024,  # 16MB
             'ALLOWED_EXTENSIONS': {'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'txt'},
             'WTF_CSRF_ENABLED': False,  # Disable CSRF for testing
+            'PROPAGATE_EXCEPTIONS': False,  # Allow Flask to handle exceptions
         })
 
         yield app

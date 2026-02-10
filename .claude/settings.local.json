@@ -8,7 +8,14 @@
       "Bash(python -m pytest:*)",
       "Bash(npx vitest run:*)",
       "Bash(npm install:*)",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "Bash(npm test)",
+      "Bash(python:*)",
+      "Bash(dir:*)",
+      "Bash(timeout:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(curl:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

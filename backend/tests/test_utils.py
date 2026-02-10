@@ -185,6 +185,7 @@ class TestTextExtraction:
         # Mock PIL Image and pytesseract
         mock_img = Mock()
         mock_image.open.return_value = mock_img
+        mock_pytesseract.get_tesseract_version.return_value = None  # Mock version check
         mock_pytesseract.image_to_string.return_value = 'Extracted text from image'
 
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:

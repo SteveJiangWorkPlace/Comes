@@ -41,6 +41,7 @@ try:
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
+    pytesseract = None
     print("Warning: pytesseract not available. OCR extraction will not work.")
 
 def extract_text_from_pdf(filepath: str) -> str:

@@ -23,6 +23,13 @@ export const STORAGE_KEYS = {
   MODULE3_HISTORY: 'comes_module3_history',
 } as const
 
+// Map module names to storage keys
+const MODULE_KEY_MAP: Record<string, keyof typeof STORAGE_KEYS> = {
+  'module1': 'MODULE1_HISTORY',
+  'module2': 'MODULE2_HISTORY',
+  'module3': 'MODULE3_HISTORY',
+}
+
 /**
  * Gets the storage instance based on type
  */
@@ -247,12 +254,12 @@ export const setSidebarState = (collapsed: boolean): boolean => {
  * Gets module history
  */
 export const getModuleHistory = <T = any>(module: string): T[] => {
-  const key = `comes_${module}_history` as keyof typeof STORAGE_KEYS
-  if (!STORAGE_KEYS[key]) {
+  const moduleKey = MODULE_KEY_MAP[module]
+  if (!moduleKey || !STORAGE_KEYS[moduleKey]) {
     console.warn(`No storage key defined for module: ${module}`)
     return []
   }
-  return getItem<T[]>(STORAGE_KEYS[key]) || []
+  return getItem<T[]>(STORAGE_KEYS[moduleKey]) || []
 }
 
 /**
@@ -263,27 +270,27 @@ export const addToModuleHistory = <T = any>(
   item: T,
   maxItems: number = 50
 ): boolean => {
-  const key = `comes_${module}_history` as keyof typeof STORAGE_KEYS
-  if (!STORAGE_KEYS[key]) {
+  const moduleKey = MODULE_KEY_MAP[module]
+  if (!moduleKey || !STORAGE_KEYS[moduleKey]) {
     console.warn(`No storage key defined for module: ${module}`)
     return false
   }
 
   const history = getModuleHistory<T>(module)
   const newHistory = [item, ...history].slice(0, maxItems)
-  return setItem(STORAGE_KEYS[key], newHistory)
+  return setItem(STORAGE_KEYS[moduleKey], newHistory)
 }
 
 /**
  * Clears module history
  */
 export const clearModuleHistory = (module: string): boolean => {
-  const key = `comes_${module}_history` as keyof typeof STORAGE_KEYS
-  if (!STORAGE_KEYS[key]) {
+  const moduleKey = MODULE_KEY_MAP[module]
+  if (!moduleKey || !STORAGE_KEYS[moduleKey]) {
     console.warn(`No storage key defined for module: ${module}`)
     return false
   }
-  return setItem(STORAGE_KEYS[key], [])
+  return setItem(STORAGE_KEYS[moduleKey], [])
 }
 
 /**
@@ -311,7 +318,7 @@ export const getStorageUsage = (
   quota: number
   percentage: number
 } | null => {
-  if (!('storage' in navigator && 'estimate' in navigator.storage)) {
+  if (!('storage' in navigator && navigator.storage && 'estimate' in navigator.storage)) {
     return null
   }
 
