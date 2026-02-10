@@ -27,7 +27,7 @@ import {
   SortAscendingOutlined,
   SortDescendingOutlined,
   CalendarOutlined,
-  ClockOutlined,
+  FieldTimeOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
   StarOutlined,
@@ -112,7 +112,7 @@ const iconComponents = {
   sortAsc: SortAscendingOutlined,
   sortDesc: SortDescendingOutlined,
   calendar: CalendarOutlined,
-  clock: ClockOutlined,
+  clock: FieldTimeOutlined,
   eye: EyeOutlined,
   eyeInvisible: EyeInvisibleOutlined,
 
