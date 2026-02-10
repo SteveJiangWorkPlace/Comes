@@ -134,11 +134,10 @@ const Login: React.FC = () => {
         {/* Logo and title section */}
         <div className={styles.header}>
           <div className={styles.logo}>
-            <Icon name="rocket" size="xl" variant="primary" />
+            <img src="/logopic.svg" alt="Comes Logo" className={styles.logoImage} />
             <h1 className={styles.title}>Comes</h1>
           </div>
-          <p className={styles.subtitle}>项目管理和协作平台</p>
-          <p className={styles.description}>欢迎回来，请登录您的账户以继续使用平台功能</p>
+          <p className={styles.subtitle}>木桃留学申请工作平台</p>
         </div>
 
         {/* Login form */}
@@ -210,7 +209,6 @@ const Login: React.FC = () => {
           {/* Error message */}
           {error && (
             <div className={styles.errorMessage}>
-              <Icon name="warning" variant="error" />
               <span>{error}</span>
             </div>
           )}
@@ -239,7 +237,6 @@ const Login: React.FC = () => {
                 size="medium"
                 onClick={handleDemoLogin}
                 disabled={isLoading}
-                leftIcon={<Icon name="user" />}
               >
                 演示用户登录
               </Button>
@@ -249,7 +246,6 @@ const Login: React.FC = () => {
                 size="medium"
                 onClick={handleAdminLogin}
                 disabled={isLoading}
-                leftIcon={<Icon name="setting" />}
               >
                 管理员登录
               </Button>

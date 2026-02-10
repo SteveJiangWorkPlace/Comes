@@ -81,7 +81,7 @@ select {
   border-radius: var(--radius-base);
   background-color: var(--color-input-bg);
   color: var(--color-input-text);
-  font-size: var(--font-size-base);
+  font-size: 0.6875rem; /* 11px */
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease;
@@ -106,9 +106,9 @@ button {
   align-items: center;
   justify-content: center;
   padding: var(--spacing-3) var(--spacing-6);
-  border-radius: var(--radius-base);
+  border-radius: 16px; /* 鹅卵石状圆角 */
   font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
+  font-size: 0.6875rem; /* 11px */
   transition: all 150ms ease;
   white-space: nowrap;
 }

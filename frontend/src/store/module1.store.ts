@@ -1,92 +1,242 @@
 /**
- * Module 1 store (placeholder)
- * Manages state for module 1 functionality
+ * Module 1 store - Student Application Information Processing
+ * Manages state for student application document analysis using Google GenAI
  */
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { apiClient } from '../api/client'
+import { ENDPOINTS } from '../api/endpoints'
 
 /**
- * Module 1 state interface
+ * Student Application Information Types
+ */
+
+export interface ApplicantInfo {
+  name: string
+  gender: string
+  birth_date: string
+  passport_number: string
+  passport_issue_date: string
+  passport_expiry_date: string
+  phone: string
+  email: string
+  password: string
+  domestic_address: string
+  postal_code: string
+}
+
+export interface EducationBackground {
+  university: string
+  major: string
+  study_period: {
+    start_date: string
+    end_date: string
+  }
+  expected_degree: string
+  gpa: {
+    score: string
+    scale: string
+  }
+}
+
+export interface LanguageTest {
+  test_type: string
+  test_date: string
+  reference_number: string
+  total_score: string
+  sections: {
+    listening: string
+    reading: string
+    writing: string
+    speaking: string
+  }
+}
+
+export interface WorkExperience {
+  company_name: string
+  company_address: string
+  position: string
+  work_period: {
+    start_date: string
+    end_date: string
+  }
+  job_description: string
+}
+
+export interface Recommender {
+  name: string
+  title: string
+  relationship: string
+  organization: string
+  organization_address: string
+  postal_code: string
+  email: string
+  phone: string
+}
+
+export interface StudentApplicationAnalysis {
+  applicant_info: ApplicantInfo
+  education_background: EducationBackground
+  language_test: LanguageTest
+  work_experience: WorkExperience[]
+  recommenders: Recommender[]
+  raw_response?: string
+  error?: string
+}
+
+export interface StudentApplicationResult {
+  id: string
+  files: {
+    transcript: { filename: string; filepath: string; content_type: string }
+    degree_certificate: { filename: string; filepath: string; content_type: string }
+    resume: { filename: string; filepath: string; content_type: string }
+    ielts_score: { filename: string; filepath: string; content_type: string }
+  }
+  status: 'uploaded' | 'analyzed' | 'completed' | 'failed'
+  analysis_result?: StudentApplicationAnalysis
+  structured_summary?: string
+  error_message?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface StudentApplicationHistory {
+  id: string
+  student_name: string
+  university: string
+  degree: string
+  uploaded_at: string
+  status: 'completed' | 'failed' | 'processing'
+  preview: string
+  file_count: number
+}
+
+/**
+ * Module 1 state interface for student application processing
  */
 export interface Module1State {
-  // Data state
-  data: any[]
-  currentData: any | null
-  isLoading: boolean
-  error: string | null
+  // Current application state
+  currentApplication: StudentApplicationResult | null
+  applicationHistory: StudentApplicationHistory[]
+  isProcessing: boolean
+  processingError: string | null
+
+  // File upload state
+  files: {
+    transcript?: File
+    degree_certificate?: File
+    resume?: File
+    ielts_score?: File
+  }
+  isUploading: boolean
+  uploadProgress: number
+  uploadError: string | null
 
   // UI state
-  inputText: string
-  selectedOption: string
-  showAdvanced: boolean
+  showAdvancedOptions: boolean
+  showRawAnalysis: boolean
+  showTemplate: boolean
+  selectedView: 'form' | 'result' | 'history'
 
-  // Pagination
-  page: number
-  limit: number
-  total: number
-  hasMore: boolean
+  // Configuration
+  processingOptions: {
+    autoAnalyze: boolean
+    generateSummary: boolean
+    confidenceThreshold: number
+    preferredLanguage: 'zh' | 'en'
+  }
 
-  // Filter state
-  filters: Record<string, any>
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
+  // Statistics
+  processingStats: {
+    totalApplications: number
+    successfulApplications: number
+    averageProcessingTime: number
+    averageConfidence: number
+  }
 }
 
 /**
  * Module 1 actions interface
  */
 export interface Module1Actions {
-  // Data actions
-  setData: (data: any[]) => void
-  setCurrentData: (data: any) => void
-  clearData: () => void
+  // File upload actions
+  setFile: (fileKey: keyof Module1State['files'], file: File | null) => void
+  clearFiles: () => void
+
+  // Application processing actions
+  uploadAndAnalyze: () => Promise<StudentApplicationResult | null>
+  analyzeApplication: (applicationId: string) => Promise<StudentApplicationResult | null>
+  getApplication: (applicationId: string) => Promise<StudentApplicationResult | null>
+  getTemplate: () => Promise<string>
 
   // UI actions
-  setInputText: (text: string) => void
-  setSelectedOption: (option: string) => void
-  toggleAdvanced: () => void
+  setShowAdvancedOptions: (show: boolean) => void
+  setShowRawAnalysis: (show: boolean) => void
+  setShowTemplate: (show: boolean) => void
+  setSelectedView: (view: Module1State['selectedView']) => void
 
-  // Pagination actions
-  setPage: (page: number) => void
-  setLimit: (limit: number) => void
-  loadMore: () => void
+  // Configuration actions
+  updateProcessingOptions: (options: Partial<Module1State['processingOptions']>) => void
+  resetProcessingOptions: () => void
 
-  // Filter actions
-  setFilters: (filters: Record<string, any>) => void
-  setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void
-  resetFilters: () => void
-
-  // API simulation actions
-  fetchData: () => Promise<void>
-  submitData: (input: string) => Promise<any>
-  deleteData: (id: string) => Promise<void>
+  // History actions
+  addToHistory: (result: StudentApplicationResult) => void
+  clearHistory: () => void
+  removeFromHistory: (id: string) => void
+  refreshHistory: () => Promise<void>
 
   // Utility actions
-  setLoading: (isLoading: boolean) => void
-  setError: (error: string | null) => void
+  setProcessing: (isProcessing: boolean) => void
+  setUploading: (isUploading: boolean) => void
+  setUploadProgress: (progress: number) => void
+  setProcessingError: (error: string | null) => void
+  setUploadError: (error: string | null) => void
   reset: () => void
+
+  // Copy actions
+  copyToClipboard: (text: string) => Promise<void>
+  copyApplicantInfo: (info: ApplicantInfo) => Promise<void>
+  copyEducationInfo: (education: EducationBackground) => Promise<void>
+  copyLanguageTestInfo: (languageTest: LanguageTest) => Promise<void>
+  copyFullSummary: (summary: string) => Promise<void>
 }
 
 // Initial state
 const initialState: Module1State = {
-  data: [],
-  currentData: null,
-  isLoading: false,
-  error: null,
+  // Current application state
+  currentApplication: null,
+  applicationHistory: [],
+  isProcessing: false,
+  processingError: null,
 
-  inputText: '',
-  selectedOption: 'default',
-  showAdvanced: false,
+  // File upload state
+  files: {},
+  isUploading: false,
+  uploadProgress: 0,
+  uploadError: null,
 
-  page: 1,
-  limit: 10,
-  total: 0,
-  hasMore: false,
+  // UI state
+  showAdvancedOptions: false,
+  showRawAnalysis: false,
+  showTemplate: false,
+  selectedView: 'form',
 
-  filters: {},
-  sortBy: 'createdAt',
-  sortOrder: 'desc',
+  // Configuration
+  processingOptions: {
+    autoAnalyze: true,
+    generateSummary: true,
+    confidenceThreshold: 0.7,
+    preferredLanguage: 'zh',
+  },
+
+  // Statistics
+  processingStats: {
+    totalApplications: 0,
+    successfulApplications: 0,
+    averageProcessingTime: 0,
+    averageConfidence: 0,
+  },
 }
 
 /**
@@ -97,185 +247,306 @@ export const useModule1Store = create<Module1State & Module1Actions>()(
     (set, get) => ({
       ...initialState,
 
-      // Data actions
-      setData: data => set({ data }),
-      setCurrentData: data => set({ currentData: data }),
-      clearData: () => set({ data: [], currentData: null, total: 0, hasMore: false }),
+      // File upload actions
+      setFile: (fileKey, file) =>
+        set(state => ({
+          files: file
+            ? { ...state.files, [fileKey]: file }
+            : { ...state.files, [fileKey]: undefined },
+        })),
+      clearFiles: () => set({ files: {} }),
 
-      // UI actions
-      setInputText: text => set({ inputText: text }),
-      setSelectedOption: option => set({ selectedOption: option }),
-      toggleAdvanced: () => set(state => ({ showAdvanced: !state.showAdvanced })),
-
-      // Pagination actions
-      setPage: page => set({ page }),
-      setLimit: limit => set({ limit, page: 1 }), // Reset to page 1 when limit changes
-      loadMore: () => {
-        const { page, hasMore } = get()
-        if (hasMore) {
-          set({ page: page + 1 })
-        }
-      },
-
-      // Filter actions
-      setFilters: filters => set({ filters, page: 1 }), // Reset to page 1 when filters change
-      setSort: (sortBy, sortOrder) => set({ sortBy, sortOrder, page: 1 }),
-      resetFilters: () =>
-        set({
-          filters: {},
-          sortBy: 'createdAt',
-          sortOrder: 'desc',
-          page: 1,
-          inputText: '',
-          selectedOption: 'default',
-          showAdvanced: false,
-        }),
-
-      // API simulation actions
-      fetchData: async () => {
-        const { page, limit, filters, inputText } = get()
-
-        set({ isLoading: true, error: null })
+      // Application processing actions
+      uploadAndAnalyze: async () => {
+        const { files, processingOptions } = get()
+        set({ isUploading: true, uploadProgress: 0, uploadError: null })
 
         try {
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 800))
+          // Validate all required files are present
+          const requiredFiles = ['transcript', 'degree_certificate', 'resume', 'ielts_score']
+          const missingFiles = requiredFiles.filter(fileKey => !files[fileKey as keyof typeof files])
 
-          // Generate mock data
-          const mockData = Array.from({ length: limit }, (_, i) => ({
-            id: `item-${(page - 1) * limit + i + 1}`,
-            title: `模块一项目 ${(page - 1) * limit + i + 1}`,
-            description: `这是模块一的示例项目描述 ${inputText || '默认文本'}`,
-            status: i % 3 === 0 ? 'active' : i % 3 === 1 ? 'pending' : 'completed',
-            priority:
-              i % 4 === 0 ? 'high' : i % 4 === 1 ? 'medium' : i % 4 === 2 ? 'low' : 'normal',
-            createdAt: new Date(
-              Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            updatedAt: new Date().toISOString(),
-            value: Math.floor(Math.random() * 1000),
-            tags: ['标签1', '标签2', '标签3'].slice(0, Math.floor(Math.random() * 3) + 1),
-            ...filters,
-          }))
+          if (missingFiles.length > 0) {
+            throw new Error(`请选择所有必需文件: ${missingFiles.join(', ')}`)
+          }
 
-          const total = 45 // Mock total count
-          const hasMore = page * limit < total
+          // Create form data
+          const formData = new FormData()
+          if (files.transcript) formData.append('transcript', files.transcript)
+          if (files.degree_certificate) formData.append('degree_certificate', files.degree_certificate)
+          if (files.resume) formData.append('resume', files.resume)
+          if (files.ielts_score) formData.append('ielts_score', files.ielts_score)
 
-          // If it's the first page, replace data; otherwise append
-          const currentData = page === 1 ? mockData : [...get().data, ...mockData]
+          // Simulate upload progress
+          set({ uploadProgress: 30 })
 
-          set({
-            data: currentData,
-            total,
-            hasMore,
-            isLoading: false,
-            error: null,
-          })
-
-          console.log(
-            `Module 1 data fetched: page ${page}, limit ${limit}, total ${currentData.length}`
+          // Upload files
+          const uploadResponse = await apiClient.post(
+            ENDPOINTS.STUDENT_APPLICATION.UPLOAD,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+              onUploadProgress: progressEvent => {
+                if (progressEvent.total) {
+                  const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                  set({ uploadProgress: 30 + progress * 0.7 }) // 30-100% for upload
+                }
+              },
+            }
           )
+
+          const { application_id } = uploadResponse.data
+          set({ uploadProgress: 100, isUploading: false })
+
+          // Auto-analyze if enabled
+          if (processingOptions.autoAnalyze) {
+            return await get().analyzeApplication(application_id)
+          }
+
+          return null
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to fetch module 1 data'
+          const errorMessage = error.response?.data?.error || error.message || '上传失败'
           set({
-            isLoading: false,
-            error: errorMessage,
-            data: page === 1 ? [] : get().data, // Keep existing data if not first page
+            isUploading: false,
+            uploadError: errorMessage,
+            uploadProgress: 0,
           })
-          console.error('Module 1 fetch error:', error)
+          console.error('Upload error:', error)
+          throw error
         }
       },
 
-      submitData: async (input: string) => {
-        set({ isLoading: true, error: null })
+      analyzeApplication: async applicationId => {
+        set({ isProcessing: true, processingError: null })
 
         try {
-          // Simulate API processing delay
-          await new Promise(resolve => setTimeout(resolve, 1200))
+          const response = await apiClient.post(
+            ENDPOINTS.STUDENT_APPLICATION.ANALYZE(applicationId)
+          )
 
-          if (!input.trim()) {
-            throw new Error('输入内容不能为空')
+          const applicationData = response.data
+          const result: StudentApplicationResult = {
+            id: applicationId,
+            files: applicationData.files || {},
+            status: applicationData.status || 'completed',
+            analysis_result: applicationData.analysis_result,
+            structured_summary: applicationData.analysis_summary || applicationData.structured_summary,
+            created_at: applicationData.created_at || new Date().toISOString(),
+            updated_at: applicationData.updated_at || new Date().toISOString(),
           }
 
-          // Generate mock result
-          const result = {
-            id: `result-${Date.now()}`,
-            input,
-            output: `模块一处理结果: ${input} (已处理)`,
-            status: 'success',
-            timestamp: new Date().toISOString(),
-            metadata: {
-              processingTime: Math.random() * 1000 + 500,
-              confidence: Math.random() * 0.5 + 0.5,
-              suggestions: ['建议1', '建议2', '建议3'].slice(0, Math.floor(Math.random() * 3) + 1),
-            },
-          }
+          // Add to history
+          get().addToHistory(result)
 
-          // Add to data
-          const { data } = get()
-          const newData = [result, ...data.slice(0, 9)] // Keep only latest 10 items
+          // Update statistics
+          const { processingStats } = get()
+          const newTotal = processingStats.totalApplications + 1
+          const newSuccessful = processingStats.successfulApplications + 1
 
           set({
-            data: newData,
-            currentData: result,
-            inputText: '', // Clear input after submission
-            isLoading: false,
-            error: null,
+            currentApplication: result,
+            isProcessing: false,
+            processingStats: {
+              ...processingStats,
+              totalApplications: newTotal,
+              successfulApplications: newSuccessful,
+            },
           })
 
-          console.log('Module 1 data submitted:', input)
           return result
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to submit module 1 data'
-          set({ isLoading: false, error: errorMessage })
-          console.error('Module 1 submit error:', error)
+          const errorMessage = error.response?.data?.error || error.message || '分析失败'
+          set({ isProcessing: false, processingError: errorMessage })
+          console.error('Analysis error:', error)
           throw error
         }
       },
 
-      deleteData: async (id: string) => {
-        set({ isLoading: true, error: null })
-
+      getApplication: async applicationId => {
         try {
-          // Simulate API call
-          await new Promise(resolve => setTimeout(resolve, 600))
+          const response = await apiClient.get(
+            ENDPOINTS.STUDENT_APPLICATION.GET_APPLICATION(applicationId)
+          )
 
-          const { data, currentData } = get()
-          const newData = data.filter(item => item.id !== id)
+          const applicationData = response.data
+          const result: StudentApplicationResult = {
+            id: applicationId,
+            files: applicationData.files || {},
+            status: applicationData.status || 'unknown',
+            analysis_result: applicationData.analysis_result,
+            structured_summary: applicationData.structured_summary,
+            error_message: applicationData.error_message,
+            created_at: applicationData.created_at || new Date().toISOString(),
+            updated_at: applicationData.updated_at || new Date().toISOString(),
+          }
 
-          set({
-            data: newData,
-            currentData: currentData?.id === id ? null : currentData,
-            isLoading: false,
-            error: null,
-          })
-
-          console.log(`Module 1 data deleted: ${id}`)
+          set({ currentApplication: result })
+          return result
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to delete module 1 data'
-          set({ isLoading: false, error: errorMessage })
-          console.error('Module 1 delete error:', error)
-          throw error
+          console.error('Get application error:', error)
+          return null
+        }
+      },
+
+      getTemplate: async () => {
+        try {
+          const response = await apiClient.get(ENDPOINTS.STUDENT_APPLICATION.GET_TEMPLATE)
+          return response.data.template || ''
+        } catch (error: any) {
+          console.error('Get template error:', error)
+          return '无法加载模板，请检查网络连接'
+        }
+      },
+
+      // UI actions
+      setShowAdvancedOptions: show => set({ showAdvancedOptions: show }),
+      setShowRawAnalysis: show => set({ showRawAnalysis: show }),
+      setShowTemplate: show => set({ showTemplate: show }),
+      setSelectedView: view => set({ selectedView: view }),
+
+      // Configuration actions
+      updateProcessingOptions: options =>
+        set(state => ({
+          processingOptions: { ...state.processingOptions, ...options },
+        })),
+      resetProcessingOptions: () =>
+        set({ processingOptions: initialState.processingOptions }),
+
+      // History actions
+      addToHistory: result => {
+        const historyItem: StudentApplicationHistory = {
+          id: result.id,
+          student_name: result.analysis_result?.applicant_info?.name || '未知申请人',
+          university: result.analysis_result?.education_background?.university || '未知院校',
+          degree: result.analysis_result?.education_background?.expected_degree || '未知学位',
+          uploaded_at: result.created_at,
+          status: result.status === 'completed' ? 'completed' : result.status === 'failed' ? 'failed' : 'processing',
+          preview: result.structured_summary?.substring(0, 100) || '无摘要信息',
+          file_count: Object.keys(result.files || {}).length,
+        }
+
+        set(state => {
+          const newHistory = [historyItem, ...state.applicationHistory.slice(0, 49)] // Keep last 50 items
+          return {
+            applicationHistory: newHistory,
+            processingStats: {
+              ...state.processingStats,
+              totalApplications: newHistory.length,
+            },
+          }
+        })
+      },
+
+      clearHistory: () =>
+        set({
+          applicationHistory: [],
+          processingStats: { ...initialState.processingStats, totalApplications: 0 },
+        }),
+
+      removeFromHistory: id =>
+        set(state => ({
+          applicationHistory: state.applicationHistory.filter(item => item.id !== id),
+        })),
+
+      refreshHistory: async () => {
+        try {
+          const response = await apiClient.get(ENDPOINTS.STUDENT_APPLICATION.LIST)
+          const applications = response.data.applications || []
+
+          const historyItems: StudentApplicationHistory[] = applications.map((app: any) => ({
+            id: app.id,
+            student_name: app.analysis_result?.applicant_info?.name || '未知申请人',
+            university: app.analysis_result?.education_background?.university || '未知院校',
+            degree: app.analysis_result?.education_background?.expected_degree || '未知学位',
+            uploaded_at: app.created_at || app.uploaded_at,
+            status: app.status === 'completed' ? 'completed' : app.status === 'failed' ? 'failed' : 'processing',
+            preview: app.structured_summary?.substring(0, 100) || '无摘要信息',
+            file_count: Object.keys(app.files || {}).length,
+          }))
+
+          set({ applicationHistory: historyItems })
+        } catch (error: any) {
+          console.error('Refresh history error:', error)
         }
       },
 
       // Utility actions
-      setLoading: isLoading => set({ isLoading }),
-      setError: error => set({ error }),
+      setProcessing: isProcessing => set({ isProcessing }),
+      setUploading: isUploading => set({ isUploading }),
+      setUploadProgress: progress => set({ uploadProgress: progress }),
+      setProcessingError: error => set({ processingError: error }),
+      setUploadError: error => set({ uploadError: error }),
       reset: () => set(initialState),
+
+      // Copy actions
+      copyToClipboard: async text => {
+        try {
+          await navigator.clipboard.writeText(text)
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Copy to clipboard failed:', error)
+          return Promise.reject(error)
+        }
+      },
+
+      copyApplicantInfo: async info => {
+        const text = `申请人信息:
+姓名: ${info.name}
+性别: ${info.gender}
+出生日期: ${info.birth_date}
+护照号码: ${info.passport_number}
+护照签发/过期: ${info.passport_issue_date} / ${info.passport_expiry_date}
+联系电话: ${info.phone}
+邮箱: ${info.email}
+密码: ${info.password}
+地址: ${info.domestic_address} (邮编: ${info.postal_code})`
+
+        return get().copyToClipboard(text)
+      },
+
+      copyEducationInfo: async education => {
+        const text = `教育背景:
+院校: ${education.university}
+专业: ${education.major}
+就读时间: ${education.study_period.start_date} 至 ${education.study_period.end_date}
+预计学位: ${education.expected_degree}
+绩点 (GPA): ${education.gpa.score} / ${education.gpa.scale}`
+
+        return get().copyToClipboard(text)
+      },
+
+      copyLanguageTestInfo: async languageTest => {
+        const text = `语言成绩:
+考试类型: ${languageTest.test_type}
+考试日期: ${languageTest.test_date}
+Reference Number: ${languageTest.reference_number}
+总分: ${languageTest.total_score}
+- 听力: ${languageTest.sections.listening}
+- 阅读: ${languageTest.sections.reading}
+- 写作: ${languageTest.sections.writing}
+- 口语: ${languageTest.sections.speaking}`
+
+        return get().copyToClipboard(text)
+      },
+
+      copyFullSummary: async summary => {
+        return get().copyToClipboard(summary)
+      },
     }),
     {
-      name: 'module1-storage',
+      name: 'module1-student-application-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: state => ({
-        // Persist UI preferences but not data
-        inputText: state.inputText,
-        selectedOption: state.selectedOption,
-        showAdvanced: state.showAdvanced,
-        filters: state.filters,
-        sortBy: state.sortBy,
-        sortOrder: state.sortOrder,
-        limit: state.limit,
+        // Persist configuration and history
+        processingOptions: state.processingOptions,
+        applicationHistory: state.applicationHistory.slice(0, 20), // Keep only recent 20
+        processingStats: state.processingStats,
+        showAdvancedOptions: state.showAdvancedOptions,
+        showRawAnalysis: state.showRawAnalysis,
+        showTemplate: state.showTemplate,
+        selectedView: state.selectedView,
       }),
     }
   )

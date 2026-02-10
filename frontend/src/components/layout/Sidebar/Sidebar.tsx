@@ -178,17 +178,13 @@ const Sidebar: React.FC<SidebarProps> = ({
         {!collapsed ? (
           <div className={styles.logoSection}>
             <div className={styles.logo}>
-              <Icon name="rocket" size="lg" variant="primary" />
+              <img src="/logopic.svg" alt="Comes Logo" className={styles.logoImage} />
               <span className={styles.logoText}>Comes</span>
-            </div>
-            <div className={styles.projectInfo}>
-              <span className={styles.projectName}>项目面板</span>
-              <span className={styles.projectVersion}>v1.0.0</span>
             </div>
           </div>
         ) : (
           <div className={styles.logoCollapsed}>
-            <Icon name="rocket" size="lg" variant="primary" />
+            <img src="/logopic.svg" alt="Comes Logo" className={styles.logoImageCollapsed} />
           </div>
         )}
 
@@ -205,51 +201,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* User info section */}
       {!collapsed && user && (
         <div className={styles.userSection}>
-          <div className={styles.userAvatar}>
-            {user.avatar ? (
-              <img src={user.avatar} alt={user.username} className={styles.avatarImage} />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                <Icon name="user" size="lg" />
-              </div>
-            )}
-          </div>
-
           <div className={styles.userInfo}>
             <div className={styles.userName}>{user.fullName || user.username}</div>
             <div className={styles.userRole}>{user.role === 'admin' ? '管理员' : '用户'}</div>
-
-            {user.remainingCredits !== undefined && (
-              <div className={styles.userCredits}>
-                <Icon name="crown" size="sm" />
-                <span>剩余次数: {user.remainingCredits}</span>
-              </div>
-            )}
-
-            {user.subscriptionExpiresAt && (
-              <div className={styles.userSubscription}>
-                <Icon name="calendar" size="sm" />
-                <span>
-                  到期: {new Date(user.subscriptionExpiresAt).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {/* Collapsed user info */}
-      {collapsed && user && (
-        <div className={styles.userCollapsed}>
-          {user.avatar ? (
-            <img src={user.avatar} alt={user.username} className={styles.avatarImageCollapsed} />
-          ) : (
-            <div className={styles.avatarPlaceholderCollapsed}>
-              <Icon name="user" />
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Navigation menu */}
       <nav className={styles.nav} role="navigation" aria-label="主菜单">

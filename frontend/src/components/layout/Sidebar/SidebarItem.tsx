@@ -4,7 +4,6 @@
 
 import React from 'react'
 import classNames from 'classnames'
-import Icon from '../../ui/Icon/Icon'
 import styles from './Sidebar.module.css'
 
 interface SidebarItemProps {
@@ -34,7 +33,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
     [styles.collapsed]: collapsed,
   })
 
-  const iconVariant = active ? 'primary' : 'default'
+  // 获取标签首字符（用于折叠状态）
+  const firstChar = item.label.charAt(0)
 
   return (
     <li className={itemClasses}>
@@ -45,16 +45,18 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         title={item.label}
         aria-current={active ? 'page' : undefined}
       >
-        <div className={styles.menuIcon}>
-          <Icon name={item.icon as any} variant={iconVariant} />
-          {showBadge && !collapsed && <span className={styles.badge}>新</span>}
-          {showBadge && collapsed && <span className={styles.badgeCollapsed}>!</span>}
-        </div>
-
-        {!collapsed && (
+        {collapsed ? (
+          // 折叠状态：显示首字符
+          <div className={styles.collapsedLabel}>
+            {firstChar}
+            {showBadge && <span className={styles.badgeCollapsed}>!</span>}
+          </div>
+        ) : (
+          // 展开状态：显示完整标签
           <div className={styles.menuContent}>
             <span className={styles.menuLabel}>{item.label}</span>
             {active && <div className={styles.activeIndicator} />}
+            {showBadge && <span className={styles.badge}>新</span>}
           </div>
         )}
       </button>

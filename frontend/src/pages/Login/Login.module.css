@@ -85,6 +85,12 @@
   margin-bottom: var(--spacing-4);
 }
 
+.logoImage {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .title {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
