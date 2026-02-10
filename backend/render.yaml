@@ -4,7 +4,7 @@ services:
     name: comes-backend
     runtime: python
     buildCommand: "cd backend && pip install -r requirements.txt"
-    startCommand: "cd backend && gunicorn wsgi:application"
+    startCommand: "gunicorn --chdir backend wsgi:application"
     envVars:
       - key: FLASK_ENV
         value: production

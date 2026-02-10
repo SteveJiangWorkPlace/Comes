@@ -36,5 +36,9 @@ if __name__ == '__main__':
     print("  POST /api/student-applications/analyze/<id> - Analyze documents")
     print("  GET  /api/student-applications/<id> - Get application details")
     print("  GET  /api/student-applications/template - Get template")
+    print("  POST /api/student-applications/transcript/upload - Upload transcript")
+    print("  POST /api/student-applications/transcript/verify/<id> - Verify transcript")
+    print("  GET  /api/student-applications/transcript/<id> - Get transcript verification")
+    print("  GET  /api/student-applications/transcript - List transcript verifications")
 
     app.run(host='0.0.0.0', port=port, debug=debug)
