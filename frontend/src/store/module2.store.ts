@@ -1,122 +1,142 @@
 /**
- * Module 2 store (placeholder)
- * Manages state for module 2 functionality
+ * Module 2 store - Transcript Verification
+ * Manages state for transcript verification functionality
  */
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import type {
+  TranscriptVerificationResult,
+  TranscriptVerificationRequest,
+  TranscriptVerificationResponse,
+  TranscriptVerificationHistory,
+  CourseInfo,
+  Semester,
+} from '../types/transcript.types'
+import { apiClient } from '../api/client'
+import { ENDPOINTS } from '../api/endpoints'
 
 /**
- * Module 2 state interface
+ * Module 2 state interface for transcript verification
  */
 export interface Module2State {
-  // Data state
-  items: any[]
-  selectedItem: any | null
-  isLoading: boolean
-  error: string | null
+  // Verification state
+  currentVerification: TranscriptVerificationResult | null
+  verificationHistory: TranscriptVerificationHistory[]
+  isVerifying: boolean
+  verificationError: string | null
 
-  // Form state
-  formData: {
-    field1: string
-    field2: string
-    field3: string
-    options: string[]
-    numericValue: number
-    booleanFlag: boolean
+  // Upload state
+  uploadType: 'single' | 'separate'
+  files: {
+    transcript?: File
+    transcriptZh?: File
+    transcriptEn?: File
   }
+  isUploading: boolean
+  uploadProgress: number
+  uploadError: string | null
 
-  // Analysis state
-  analysisResults: any[]
-  currentAnalysis: any | null
-  isAnalyzing: boolean
+  // UI state
+  selectedSemesterIndex: number
+  selectedCourseIndex: number
+  showRawData: boolean
+  showConfidenceScores: boolean
 
   // Configuration
-  config: {
-    autoProcess: boolean
-    notifications: boolean
-    qualityLevel: 'low' | 'medium' | 'high'
-    outputFormat: 'json' | 'text' | 'html'
+  verificationOptions: {
+    preferredLanguage: 'zh' | 'en'
+    includeGrades: boolean
+    calculateGPA: boolean
+    confidenceThreshold: number
+    autoVerify: boolean
   }
 
-  // History
-  history: any[]
-  currentPage: number
-  itemsPerPage: number
-  totalItems: number
+  // Statistics
+  verificationStats: {
+    totalVerifications: number
+    successfulVerifications: number
+    averageConfidence: number
+    averageProcessingTime: number
+  }
 }
 
 /**
  * Module 2 actions interface
  */
 export interface Module2Actions {
-  // Data actions
-  setItems: (items: any[]) => void
-  setSelectedItem: (item: any) => void
-  clearItems: () => void
+  // Upload actions
+  setUploadType: (type: 'single' | 'separate') => void
+  setFile: (fileKey: keyof Module2State['files'], file: File | null) => void
+  clearFiles: () => void
 
-  // Form actions
-  updateFormData: (updates: Partial<Module2State['formData']>) => void
-  resetForm: () => void
+  // Verification actions
+  uploadAndVerify: () => Promise<TranscriptVerificationResult | null>
+  verifyTranscript: (verificationId: string) => Promise<TranscriptVerificationResult | null>
+  getVerification: (verificationId: string) => Promise<TranscriptVerificationResult | null>
 
-  // Analysis actions
-  setAnalysisResults: (results: any[]) => void
-  setCurrentAnalysis: (analysis: any) => void
-  clearAnalysis: () => void
+  // UI actions
+  setSelectedSemester: (index: number) => void
+  setSelectedCourse: (semesterIndex: number, courseIndex: number) => void
+  toggleRawData: () => void
+  toggleConfidenceScores: () => void
 
   // Configuration actions
-  updateConfig: (updates: Partial<Module2State['config']>) => void
-  resetConfig: () => void
+  updateVerificationOptions: (options: Partial<Module2State['verificationOptions']>) => void
+  resetVerificationOptions: () => void
 
   // History actions
-  addToHistory: (item: any) => void
+  addToHistory: (result: TranscriptVerificationResult) => void
   clearHistory: () => void
-  setCurrentPage: (page: number) => void
-
-  // API simulation actions
-  fetchItems: (query?: string) => Promise<void>
-  processForm: () => Promise<any>
-  analyzeData: (data: any) => Promise<any>
-  exportData: (format: string) => Promise<void>
+  removeFromHistory: (id: string) => void
 
   // Utility actions
-  setLoading: (isLoading: boolean) => void
-  setAnalyzing: (isAnalyzing: boolean) => void
-  setError: (error: string | null) => void
+  setVerifying: (isVerifying: boolean) => void
+  setUploading: (isUploading: boolean) => void
+  setUploadProgress: (progress: number) => void
+  setVerificationError: (error: string | null) => void
+  setUploadError: (error: string | null) => void
   reset: () => void
+
+  // Copy actions
+  copyToClipboard: (text: string) => Promise<void>
+  copyCourseInfo: (course: CourseInfo) => Promise<void>
+  copySemesterInfo: (semester: Semester) => Promise<void>
+  copyStudentInfo: (studentInfo: TranscriptVerificationResult['student']) => Promise<void>
 }
 
 // Initial state
 const initialState: Module2State = {
-  items: [],
-  selectedItem: null,
-  isLoading: false,
-  error: null,
+  currentVerification: null,
+  verificationHistory: [],
+  isVerifying: false,
+  verificationError: null,
 
-  formData: {
-    field1: '',
-    field2: '',
-    field3: '',
-    options: [],
-    numericValue: 0,
-    booleanFlag: false,
+  uploadType: 'single',
+  files: {},
+  isUploading: false,
+  uploadProgress: 0,
+  uploadError: null,
+
+  selectedSemesterIndex: 0,
+  selectedCourseIndex: 0,
+  showRawData: false,
+  showConfidenceScores: true,
+
+  verificationOptions: {
+    preferredLanguage: 'zh',
+    includeGrades: true,
+    calculateGPA: true,
+    confidenceThreshold: 0.7,
+    autoVerify: true,
   },
 
-  analysisResults: [],
-  currentAnalysis: null,
-  isAnalyzing: false,
-
-  config: {
-    autoProcess: true,
-    notifications: true,
-    qualityLevel: 'medium',
-    outputFormat: 'json',
+  verificationStats: {
+    totalVerifications: 0,
+    successfulVerifications: 0,
+    averageConfidence: 0,
+    averageProcessingTime: 0,
   },
-
-  history: [],
-  currentPage: 1,
-  itemsPerPage: 10,
-  totalItems: 0,
 }
 
 /**
@@ -127,288 +147,275 @@ export const useModule2Store = create<Module2State & Module2Actions>()(
     (set, get) => ({
       ...initialState,
 
-      // Data actions
-      setItems: items => set({ items }),
-      setSelectedItem: item => set({ selectedItem: item }),
-      clearItems: () => set({ items: [], selectedItem: null, totalItems: 0 }),
-
-      // Form actions
-      updateFormData: updates =>
+      // Upload actions
+      setUploadType: type => set({ uploadType: type }),
+      setFile: (fileKey, file) =>
         set(state => ({
-          formData: { ...state.formData, ...updates },
+          files: file
+            ? { ...state.files, [fileKey]: file }
+            : { ...state.files, [fileKey]: undefined },
         })),
-      resetForm: () =>
-        set({
-          formData: initialState.formData,
-        }),
+      clearFiles: () => set({ files: {} }),
 
-      // Analysis actions
-      setAnalysisResults: results => set({ analysisResults: results }),
-      setCurrentAnalysis: analysis => set({ currentAnalysis: analysis }),
-      clearAnalysis: () => set({ analysisResults: [], currentAnalysis: null }),
-
-      // Configuration actions
-      updateConfig: updates =>
-        set(state => ({
-          config: { ...state.config, ...updates },
-        })),
-      resetConfig: () =>
-        set({
-          config: initialState.config,
-        }),
-
-      // History actions
-      addToHistory: item =>
-        set(state => {
-          const newHistory = [
-            {
-              ...item,
-              id: `history-${Date.now()}`,
-              timestamp: new Date().toISOString(),
-            },
-            ...state.history.slice(0, 49), // Keep only last 50 items
-          ]
-          return {
-            history: newHistory,
-            totalItems: newHistory.length,
-          }
-        }),
-      clearHistory: () => set({ history: [], totalItems: 0, currentPage: 1 }),
-      setCurrentPage: page => set({ currentPage: page }),
-
-      // API simulation actions
-      fetchItems: async (query = '') => {
-        set({ isLoading: true, error: null })
+      // Verification actions
+      uploadAndVerify: async () => {
+        const { files, uploadType, verificationOptions } = get()
+        set({ isUploading: true, uploadProgress: 0, uploadError: null })
 
         try {
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 700))
+          // Validate files based on upload type
+          if (uploadType === 'single' && !files.transcript) {
+            throw new Error('请选择成绩单文件')
+          }
+          if (uploadType === 'separate' && (!files.transcriptZh || !files.transcriptEn)) {
+            throw new Error('请选择中文和英文成绩单文件')
+          }
 
-          // Generate mock items based on query
-          const itemCount = 15
-          const mockItems = Array.from({ length: itemCount }, (_, i) => ({
-            id: `module2-item-${i + 1}`,
-            name: `模块二项目 ${i + 1}${query ? ` (搜索: ${query})` : ''}`,
-            description: `这是模块二的示例项目描述，包含一些数据供分析使用。`,
-            category: i % 3 === 0 ? '类别A' : i % 3 === 1 ? '类别B' : '类别C',
-            value: Math.floor(Math.random() * 1000),
-            score: Math.floor(Math.random() * 100),
-            status:
-              i % 4 === 0
-                ? 'pending'
-                : i % 4 === 1
-                  ? 'processing'
-                  : i % 4 === 2
-                    ? 'completed'
-                    : 'error',
-            createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-            metadata: {
-              tags: ['分析', '数据', '模块二'].slice(0, Math.floor(Math.random() * 3) + 1),
-              complexity: Math.random().toFixed(2),
-            },
-          }))
+          // Create form data
+          const formData = new FormData()
+          formData.append('upload_type', uploadType)
 
-          // Filter by query if provided
-          const filteredItems = query
-            ? mockItems.filter(
-                item =>
-                  item.name.includes(query) ||
-                  item.description.includes(query) ||
-                  item.category.includes(query)
-              )
-            : mockItems
+          if (uploadType === 'single' && files.transcript) {
+            formData.append('transcript', files.transcript)
+          } else if (uploadType === 'separate') {
+            if (files.transcriptZh) formData.append('transcript_zh', files.transcriptZh)
+            if (files.transcriptEn) formData.append('transcript_en', files.transcriptEn)
+          }
 
-          set({
-            items: filteredItems,
-            isLoading: false,
-            error: null,
-          })
+          // Simulate upload progress
+          set({ uploadProgress: 30 })
 
-          console.log(
-            `Module 2 items fetched: ${filteredItems.length} items${query ? ` (query: "${query}")` : ''}`
+          // Upload files
+          const uploadResponse = await apiClient.post(
+            ENDPOINTS.TRANSCRIPT_VERIFICATION.UPLOAD,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+              onUploadProgress: progressEvent => {
+                if (progressEvent.total) {
+                  const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                  set({ uploadProgress: 30 + progress * 0.7 }) // 30-100% for upload
+                }
+              },
+            }
           )
+
+          const { verification_id } = uploadResponse.data
+          set({ uploadProgress: 100, isUploading: false })
+
+          // Auto-verify if enabled
+          if (verificationOptions.autoVerify) {
+            return await get().verifyTranscript(verification_id)
+          }
+
+          return null
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to fetch module 2 items'
+          const errorMessage = error.response?.data?.error || error.message || '上传失败'
           set({
-            isLoading: false,
-            error: errorMessage,
-            items: [],
+            isUploading: false,
+            uploadError: errorMessage,
+            uploadProgress: 0,
           })
-          console.error('Module 2 fetch error:', error)
+          console.error('Upload error:', error)
+          throw error
         }
       },
 
-      processForm: async () => {
-        const { formData } = get()
-        set({ isLoading: true, error: null })
+      verifyTranscript: async verificationId => {
+        set({ isVerifying: true, verificationError: null })
 
         try {
-          // Validate form
-          if (!formData.field1.trim() || !formData.field2.trim()) {
-            throw new Error('字段1和字段2是必填项')
-          }
+          const response = await apiClient.post(
+            ENDPOINTS.TRANSCRIPT_VERIFICATION.VERIFY(verificationId)
+          )
 
-          // Simulate processing delay
-          await new Promise(resolve => setTimeout(resolve, 1500))
+          const verificationResult = response.data.verification_result
+          const structuredResult = response.data.structured_result
 
-          // Generate mock result
-          const result = {
-            id: `process-${Date.now()}`,
-            input: formData,
-            output: {
-              processedData: `模块二处理结果: ${formData.field1} + ${formData.field2}`,
-              analysis: `分析完成，数值: ${formData.numericValue}`,
-              recommendations:
-                formData.options.length > 0
-                  ? `基于选项 ${formData.options.join(', ')} 的建议`
-                  : '无推荐建议',
-              summary: `处理摘要 - 标志: ${formData.booleanFlag ? '是' : '否'}`,
+          // Create verification result object
+          const result: TranscriptVerificationResult = {
+            ...verificationResult,
+            metadata: {
+              ...verificationResult.metadata,
+              structured_result: structuredResult,
             },
-            status: 'success',
-            timestamp: new Date().toISOString(),
-            processingTime: Math.random() * 800 + 200,
-            confidence: Math.random() * 0.3 + 0.7,
           }
 
           // Add to history
           get().addToHistory(result)
 
+          // Update statistics
+          const { verificationStats } = get()
+          const newTotal = verificationStats.totalVerifications + 1
+          const newSuccessful = verificationStats.successfulVerifications + 1
+          const newAvgConfidence =
+            (verificationStats.averageConfidence * verificationStats.totalVerifications +
+              (result.metadata?.overallConfidence || 0)) /
+            newTotal
+
           set({
-            currentAnalysis: result,
-            isLoading: false,
-            error: null,
+            currentVerification: result,
+            isVerifying: false,
+            verificationStats: {
+              ...verificationStats,
+              totalVerifications: newTotal,
+              successfulVerifications: newSuccessful,
+              averageConfidence: newAvgConfidence,
+            },
           })
 
-          console.log('Module 2 form processed:', formData)
           return result
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to process module 2 form'
-          set({ isLoading: false, error: errorMessage })
-          console.error('Module 2 process error:', error)
+          const errorMessage = error.response?.data?.error || error.message || '验证失败'
+          set({ isVerifying: false, verificationError: errorMessage })
+          console.error('Verification error:', error)
           throw error
         }
       },
 
-      analyzeData: async (data: any) => {
-        set({ isAnalyzing: true, error: null })
-
+      getVerification: async verificationId => {
         try {
-          // Simulate analysis delay
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          const response = await apiClient.get(
+            ENDPOINTS.TRANSCRIPT_VERIFICATION.GET_VERIFICATION(verificationId)
+          )
 
-          // Generate mock analysis
-          const analysis = {
-            id: `analysis-${Date.now()}`,
-            input: data,
-            results: {
-              patterns: Array.from({ length: Math.floor(Math.random() * 5) + 1 }, (_, i) => ({
-                pattern: `模式 ${i + 1}`,
-                confidence: Math.random().toFixed(3),
-                description: `检测到的数据模式描述 ${i + 1}`,
-              })),
-              statistics: {
-                mean: Math.random() * 100,
-                median: Math.random() * 100,
-                stdDev: Math.random() * 10,
-                min: Math.random() * 50,
-                max: Math.random() * 150,
-              },
-              insights: [
-                '数据呈现周期性变化',
-                '检测到异常值需要关注',
-                '趋势显示增长态势',
-                '相关性分析结果显著',
-              ].slice(0, Math.floor(Math.random() * 4) + 1),
-              recommendations: [
-                '建议增加数据采样频率',
-                '考虑使用更复杂的分析模型',
-                '数据质量良好，可进一步深入分析',
-              ],
+          const verificationData = response.data
+          const result: TranscriptVerificationResult = {
+            ...verificationData.verification_result,
+            metadata: {
+              ...verificationData.verification_result?.metadata,
+              structured_result: verificationData.structured_result,
             },
-            status: 'completed',
-            timestamp: new Date().toISOString(),
-            analysisTime: Math.random() * 1500 + 500,
           }
 
-          // Add to analysis results
-          set(state => ({
-            analysisResults: [analysis, ...state.analysisResults.slice(0, 9)], // Keep latest 10
-            currentAnalysis: analysis,
-            isAnalyzing: false,
-            error: null,
-          }))
-
-          console.log('Module 2 data analyzed:', data)
-          return analysis
+          set({ currentVerification: result })
+          return result
         } catch (error: any) {
-          const errorMessage = error.message || 'Failed to analyze module 2 data'
-          set({ isAnalyzing: false, error: errorMessage })
-          console.error('Module 2 analysis error:', error)
-          throw error
+          console.error('Get verification error:', error)
+          return null
         }
       },
 
-      exportData: async (format: string) => {
-        set({ isLoading: true, error: null })
+      // UI actions
+      setSelectedSemester: index => set({ selectedSemesterIndex: index }),
+      setSelectedCourse: (semesterIndex, courseIndex) =>
+        set({ selectedSemesterIndex: semesterIndex, selectedCourseIndex: courseIndex }),
+      toggleRawData: () => set(state => ({ showRawData: !state.showRawData })),
+      toggleConfidenceScores: () =>
+        set(state => ({ showConfidenceScores: !state.showConfidenceScores })),
 
-        try {
-          // Simulate export delay
-          await new Promise(resolve => setTimeout(resolve, 1000))
+      // Configuration actions
+      updateVerificationOptions: options =>
+        set(state => ({
+          verificationOptions: { ...state.verificationOptions, ...options },
+        })),
+      resetVerificationOptions: () =>
+        set({ verificationOptions: initialState.verificationOptions }),
 
-          const { analysisResults, items, history } = get()
-          const dataToExport = {
-            format,
-            timestamp: new Date().toISOString(),
-            stats: {
-              analysisCount: analysisResults.length,
-              itemCount: items.length,
-              historyCount: history.length,
+      // History actions
+      addToHistory: result => {
+        const historyItem: TranscriptVerificationHistory = {
+          id: result.id,
+          studentName: result.student.nameZh || result.student.nameEn || '未知学生',
+          university: result.student.university || '未知院校',
+          verifiedAt: result.metadata?.verifiedAt || new Date().toISOString(),
+          semesterCount: result.semesters.length,
+          courseCount: result.semesters.reduce((sum, semester) => sum + semester.courses.length, 0),
+          confidence: result.metadata?.overallConfidence || 0,
+          status: result.metadata?.status === 'completed' ? 'completed' : 'failed',
+          preview: result.semesters[0]?.courses[0]?.nameZh || '无课程信息',
+        }
+
+        set(state => {
+          const newHistory = [historyItem, ...state.verificationHistory.slice(0, 49)] // Keep last 50 items
+          return {
+            verificationHistory: newHistory,
+            verificationStats: {
+              ...state.verificationStats,
+              totalVerifications: newHistory.length,
             },
-            data:
-              format === 'json'
-                ? {
-                    analyses: analysisResults,
-                    items,
-                    history,
-                  }
-                : '导出数据...',
           }
-
-          // Mock download
-          const dataStr = JSON.stringify(dataToExport, null, 2)
-          const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr)
-
-          // In a real app, this would trigger a download
-          console.log(`Module 2 data exported in ${format} format:`, dataToExport)
-
-          set({
-            isLoading: false,
-            error: null,
-          })
-
-          return dataUri
-        } catch (error: any) {
-          const errorMessage = error.message || 'Failed to export module 2 data'
-          set({ isLoading: false, error: errorMessage })
-          console.error('Module 2 export error:', error)
-          throw error
-        }
+        })
       },
+
+      clearHistory: () =>
+        set({
+          verificationHistory: [],
+          verificationStats: { ...initialState.verificationStats, totalVerifications: 0 },
+        }),
+
+      removeFromHistory: id =>
+        set(state => ({
+          verificationHistory: state.verificationHistory.filter(item => item.id !== id),
+        })),
 
       // Utility actions
-      setLoading: isLoading => set({ isLoading }),
-      setAnalyzing: isAnalyzing => set({ isAnalyzing }),
-      setError: error => set({ error }),
+      setVerifying: isVerifying => set({ isVerifying }),
+      setUploading: isUploading => set({ isUploading }),
+      setUploadProgress: progress => set({ uploadProgress: progress }),
+      setVerificationError: error => set({ verificationError: error }),
+      setUploadError: error => set({ uploadError: error }),
       reset: () => set(initialState),
+
+      // Copy actions
+      copyToClipboard: async text => {
+        try {
+          await navigator.clipboard.writeText(text)
+          return Promise.resolve()
+        } catch (error) {
+          console.error('Copy to clipboard failed:', error)
+          return Promise.reject(error)
+        }
+      },
+
+      copyCourseInfo: async course => {
+        const text = `课程名称: ${course.nameZh} (${course.nameEn})
+课程类型: ${course.type.zh} (${course.type.en})
+学分: ${course.credits}
+${course.grade ? `成绩: ${course.grade}` : ''}
+${course.gradePoints ? `绩点: ${course.gradePoints}` : ''}
+${course.description ? `描述: ${course.description}` : ''}`
+
+        return get().copyToClipboard(text)
+      },
+
+      copySemesterInfo: async semester => {
+        const text = `学期: ${semester.nameZh} (${semester.nameEn})
+学年: ${semester.academicYear}
+学期类型: ${semester.type}
+时间: ${semester.startDate || '未提供'} 至 ${semester.endDate || '未提供'}
+总学分: ${semester.totalCredits}
+${semester.semesterGPA ? `学期绩点: ${semester.semesterGPA}` : ''}
+课程数量: ${semester.courses.length}`
+
+        return get().copyToClipboard(text)
+      },
+
+      copyStudentInfo: async studentInfo => {
+        const text = `学生信息:
+中文姓名: ${studentInfo.nameZh}
+英文姓名: ${studentInfo.nameEn}
+学号: ${studentInfo.studentId}
+院校: ${studentInfo.university}
+专业: ${studentInfo.major}
+学位级别: ${studentInfo.degreeLevel}
+${studentInfo.graduationDate ? `预计毕业时间: ${studentInfo.graduationDate}` : ''}
+${studentInfo.overallGPA ? `总平均绩点: ${studentInfo.overallGPA} / ${studentInfo.gpaScale}` : ''}`
+
+        return get().copyToClipboard(text)
+      },
     }),
     {
-      name: 'module2-storage',
+      name: 'module2-transcript-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: state => ({
-        // Persist configuration and form preferences
-        formData: state.formData,
-        config: state.config,
-        itemsPerPage: state.itemsPerPage,
+        // Persist configuration and history
+        verificationOptions: state.verificationOptions,
+        verificationHistory: state.verificationHistory.slice(0, 20), // Keep only recent 20
+        verificationStats: state.verificationStats,
+        uploadType: state.uploadType,
       }),
     }
   )

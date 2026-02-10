@@ -5,6 +5,7 @@ Service layer for student application analysis using Google GenAI
 import os
 import json
 import tempfile
+from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Try to import Google GenAI with different possible import paths
@@ -361,3 +362,306 @@ class StudentApplicationService:
         except Exception as e:
             print(f"Error generating structured summary: {e}")
             return f"生成结构化总结时出错: {str(e)}"
+
+
+class TranscriptVerificationService:
+    """Service for processing transcript verification with Google GenAI"""
+
+    def __init__(self):
+        """Initialize Google GenAI client"""
+        # Get API key from environment variable
+        api_key = os.environ.get('GOOGLE_GENAI_API_KEY')
+
+        if not GENAI_AVAILABLE:
+            raise ImportError("google-genai library is not installed. Please install it with: pip install google-genai")
+
+        if not api_key:
+            raise ValueError("GOOGLE_GENAI_API_KEY environment variable is required")
+
+        # Configure the client
+        self.client = genai.Client(api_key=api_key)
+
+        # Define the transcript analysis prompt
+        self.transcript_prompt = """你是一个专业的成绩单认证专家。请分析以下成绩单内容，提取关键学术信息并按照指定格式组织。
+
+成绩单可能包含以下形式：
+1. 双语成绩单：同一文件中同时包含中文和英文内容
+2. 中文成绩单：仅包含中文内容
+3. 英文成绩单：仅包含英文内容
+4. 分开的成绩单：分别上传中文和英文成绩单
+
+请从成绩单中提取以下信息，并按照以下JSON格式返回：
+
+{
+  "student_info": {
+    "name_zh": "学生中文姓名",
+    "name_en": "学生英文姓名",
+    "student_id": "学号",
+    "university": "所在院校",
+    "major": "专业",
+    "degree_level": "学位级别（如：本科、硕士、博士）",
+    "graduation_date": "预计毕业日期（YYYY-MM格式）",
+    "overall_gpa": "总平均绩点",
+    "gpa_scale": "绩点总分（如4.0或100）"
+  },
+  "semesters": [
+    {
+      "semester_id": "学期标识",
+      "name_zh": "学期中文名（如：第一学期、上学期、2023秋季）",
+      "name_en": "学期英文名（如：Fall 2023, Spring 2024）",
+      "type": "学期类型（fall/spring/summer/winter/custom）",
+      "academic_year": "学年（如：2023-2024）",
+      "start_date": "开始日期（YYYY-MM-DD，如已知）",
+      "end_date": "结束日期（YYYY-MM-DD，如已知）",
+      "courses": [
+        {
+          "course_id": "课程标识",
+          "code": "课程代码（如：CS101）",
+          "name_zh": "课程中文名",
+          "name_en": "课程英文名",
+          "course_type": {
+            "type": "课程类型（core/elective/major/general/required/optional/practical/thesis/internship/language）",
+            "en": "课程类型英文描述",
+            "zh": "课程类型中文描述"
+          },
+          "credits": "学分",
+          "grade": "成绩（如：A, 90, 优秀）",
+          "grade_points": "绩点分数（如：4.0, 3.5）",
+          "description": "课程描述（如已知）"
+        }
+      ],
+      "total_credits": "该学期总学分",
+      "semester_gpa": "该学期绩点（如已知）"
+    }
+  ],
+  "academic_summary": {
+    "total_credits": "总学分",
+    "total_courses": "总课程数",
+    "academic_standing": "学业状态（如：良好、优秀）",
+    "verification_notes": "认证备注"
+  }
+}
+
+提取规则：
+1. 学期划分：根据成绩单上的学期信息，将课程按学期分组
+2. 课程类型判断：根据课程名称、描述或学分判断课程类型
+   - 核心课程（core）：专业核心必修课
+   - 专业课程（major）：专业相关课程
+   - 选修课程（elective）：选修课
+   - 通识课程（general）：通识教育课
+   - 必修课程（required）：必修课
+   - 可选课程（optional）：可选课
+   - 实践课程（practical）：实验、实践课
+   - 论文课程（thesis）：毕业论文、设计
+   - 实习课程（internship）：实习
+   - 语言课程（language）：语言类课程
+3. 双语匹配：如果成绩单是双语或分开上传，请确保中英文课程名称正确匹配
+4. 学分计算：确保学分数值准确提取
+5. 成绩提取：如果成绩单包含成绩，请提取成绩信息
+
+如果某些信息无法找到，请将对应字段设为null。请确保提取的信息尽可能准确完整。"""
+
+    def _extract_transcript_texts(self, files: Dict[str, Any], upload_type: str) -> Dict[str, str]:
+        """Extract text content from uploaded transcript files"""
+        transcript_texts = {}
+
+        for file_key, file_info in files.items():
+            filepath = file_info['filepath']
+            content_type = file_info.get('content_type')
+
+            try:
+                text = extract_text_from_file(filepath, content_type)
+                transcript_texts[file_key] = text
+                print(f"Extracted {len(text)} characters from {file_key}")
+            except Exception as e:
+                print(f"Failed to extract text from {file_key}: {e}")
+                transcript_texts[file_key] = ""
+
+        return transcript_texts
+
+    def _prepare_transcript_content(self, transcript_texts: Dict[str, str], upload_type: str) -> str:
+        """Prepare content for GenAI analysis"""
+        content_parts = []
+
+        if upload_type == 'single':
+            # Single bilingual transcript
+            for file_key, text in transcript_texts.items():
+                content_parts.append(f"=== 成绩单文件: {file_key} ===\n{text}\n")
+        elif upload_type == 'separate':
+            # Separate Chinese and English transcripts
+            if 'transcript_zh' in transcript_texts:
+                content_parts.append(f"=== 中文成绩单 ===\n{transcript_texts['transcript_zh']}\n")
+            if 'transcript_en' in transcript_texts:
+                content_parts.append(f"=== 英文成绩单 ===\n{transcript_texts['transcript_en']}\n")
+
+        return "\n".join(content_parts)
+
+    def verify_transcript(self, files: Dict[str, Any], upload_type: str) -> Dict[str, Any]:
+        """Verify transcript using Google GenAI"""
+        try:
+            # Check if GenAI is available
+            if not GENAI_AVAILABLE:
+                return {
+                    "error": "Google GenAI library not available",
+                    "message": "Please install google-genai library and set GOOGLE_GENAI_API_KEY environment variable"
+                }
+
+            # Step 1: Extract text from transcript documents
+            print("Extracting text from transcript documents...")
+            transcript_texts = self._extract_transcript_texts(files, upload_type)
+
+            # Step 2: Prepare content for analysis
+            print("Preparing content for GenAI analysis...")
+            content = self._prepare_transcript_content(transcript_texts, upload_type)
+
+            # Step 3: Call Google GenAI for analysis
+            print("Calling Google GenAI for transcript verification...")
+
+            # Try primary model first, fallback to secondary
+            models_to_try = ["gemini-3-pro-preview", "gemini-2.5-pro"]
+            response = None
+
+            for model_name in models_to_try:
+                try:
+                    print(f"Trying model: {model_name}")
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=[self.transcript_prompt, content],
+                        generation_config={
+                            "temperature": 0.1,
+                            "top_p": 0.8,
+                            "top_k": 40,
+                            "max_output_tokens": 8192,  # Increased for transcript data
+                        }
+                    )
+                    print(f"Successfully used model: {model_name}")
+                    break
+                except Exception as model_error:
+                    print(f"Model {model_name} failed: {model_error}")
+                    if model_name == models_to_try[-1]:  # Last model failed
+                        raise model_error
+                    continue
+
+            # Step 4: Parse the response
+            result_text = response.text.strip()
+
+            # Try to extract JSON from the response
+            try:
+                # Find JSON in the response (might be wrapped in markdown code blocks)
+                if '```json' in result_text:
+                    json_str = result_text.split('```json')[1].split('```')[0].strip()
+                elif '```' in result_text:
+                    json_str = result_text.split('```')[1].split('```')[0].strip()
+                else:
+                    json_str = result_text
+
+                verification_result = json.loads(json_str)
+
+                # Add metadata
+                verification_result['metadata'] = {
+                    'document_type': 'bilingual' if upload_type == 'single' else 'separate',
+                    'source_files': list(files.keys()),
+                    'verified_at': datetime.now().isoformat(),
+                    'model_used': 'gemini-3-pro-preview' if 'gemini-3-pro-preview' in models_to_try else 'gemini-2.5-pro',
+                    'processing_time': 0,  # Would be calculated in real implementation
+                    'status': 'completed'
+                }
+
+            except json.JSONDecodeError as e:
+                print(f"Failed to parse JSON response: {e}")
+                print(f"Response text: {result_text}")
+                # Fallback: return raw text
+                verification_result = {
+                    "raw_response": result_text,
+                    "error": "Failed to parse JSON response",
+                    "metadata": {
+                        'status': 'failed',
+                        'error': str(e)
+                    }
+                }
+
+            return verification_result
+
+        except Exception as e:
+            print(f"Error in transcript verification: {e}")
+            return {
+                "error": str(e),
+                "metadata": {
+                    'status': 'failed',
+                    'error': str(e)
+                }
+            }
+
+    def generate_structured_transcript(self, verification_result: Dict[str, Any]) -> str:
+        """Generate structured transcript summary based on verification result"""
+        try:
+            # Extract data from verification result
+            student_info = verification_result.get('student_info', {})
+            semesters = verification_result.get('semesters', [])
+            academic_summary = verification_result.get('academic_summary', {})
+
+            # Build structured output
+            sections = []
+
+            # Student information section
+            sections.append(f"""# 成绩单认证报告
+
+## 一、 学生基本信息
+- **中文姓名**: {student_info.get('name_zh', '未提供')}
+- **英文姓名**: {student_info.get('name_en', '未提供')}
+- **学号**: {student_info.get('student_id', '未提供')}
+- **院校**: {student_info.get('university', '未提供')}
+- **专业**: {student_info.get('major', '未提供')}
+- **学位级别**: {student_info.get('degree_level', '未提供')}
+- **预计毕业时间**: {student_info.get('graduation_date', '未提供')}
+- **总平均绩点 (GPA)**: {student_info.get('overall_gpa', '未提供')} / {student_info.get('gpa_scale', '未提供')}
+""")
+
+            # Semesters section
+            if semesters:
+                sections.append("## 二、 学期课程信息")
+                for i, semester in enumerate(semesters, 1):
+                    semester_section = f"""### 第{i}学期: {semester.get('name_zh', '')} ({semester.get('name_en', '')})
+- **学年**: {semester.get('academic_year', '未提供')}
+- **学期类型**: {semester.get('type', '未提供')}
+- **时间**: {semester.get('start_date', '未提供')} 至 {semester.get('end_date', '未提供')}
+- **学期学分**: {semester.get('total_credits', 0)}
+- **学期绩点**: {semester.get('semester_gpa', '未提供')}
+
+**课程列表**:"""
+
+                    for j, course in enumerate(semester.get('courses', []), 1):
+                        course_type = course.get('course_type', {})
+                        semester_section += f"""
+{j}. **{course.get('name_zh', '')}** ({course.get('name_en', '')})
+   - **课程代码**: {course.get('code', '未提供')}
+   - **课程类型**: {course_type.get('zh', '')} ({course_type.get('en', '')})
+   - **学分**: {course.get('credits', 0)}
+   - **成绩**: {course.get('grade', '未提供')}
+   - **绩点**: {course.get('grade_points', '未提供')}"""
+
+                    sections.append(semester_section)
+
+            # Academic summary section
+            sections.append(f"""## 三、 学业总览
+- **总学分**: {academic_summary.get('total_credits', 0)}
+- **总课程数**: {academic_summary.get('total_courses', 0)}
+- **学业状态**: {academic_summary.get('academic_standing', '未提供')}
+- **认证备注**: {academic_summary.get('verification_notes', '无')}
+""")
+
+            # Metadata section (if available)
+            metadata = verification_result.get('metadata', {})
+            if metadata:
+                sections.append(f"""## 四、 认证信息
+- **认证时间**: {metadata.get('verified_at', '未提供')}
+- **使用模型**: {metadata.get('model_used', '未提供')}
+- **文档类型**: {metadata.get('document_type', '未提供')}
+- **认证状态**: {metadata.get('status', '未提供')}
+""")
+
+            return "\n\n".join(sections)
+
+        except Exception as e:
+            print(f"Error generating structured transcript: {e}")
+            return f"生成结构化成绩单时出错: {str(e)}"

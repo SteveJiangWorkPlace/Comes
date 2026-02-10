@@ -44,6 +44,19 @@ export type {
   ModuleConfig,
 } from './module.types'
 
+// Export transcript verification types
+export type {
+  CourseType,
+  CourseTypeInfo,
+  CourseInfo,
+  Semester,
+  TranscriptVerificationResult,
+  TranscriptVerificationRequest,
+  TranscriptVerificationResponse,
+  CourseTypeMapping,
+  TranscriptVerificationHistory,
+} from './transcript.types'
+
 // Export utility types
 export type Nullable<T> = T | null
 export type Optional<T> = T | undefined

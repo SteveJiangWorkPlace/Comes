@@ -1,25 +1,24 @@
-# Render deployment configuration for Comes backend
-# This is a placeholder - update with actual backend stack
-
+# Render deployment configuration for Comes backend (Python Flask)
 services:
   - type: web
     name: comes-backend
-    runtime: python  # Change to node, go, etc. based on your backend stack
-    buildCommand: ""
-    startCommand: ""
+    runtime: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && gunicorn wsgi:application"
     envVars:
-      - key: NODE_ENV
+      - key: FLASK_ENV
         value: production
       - key: PORT
         value: 5000
-      # Add your backend environment variables here:
-      # - key: DATABASE_URL
-      #   value: your-database-url
-      # - key: JWT_SECRET
-      #   value: your-secret-key
+      - key: SECRET_KEY
+        generateValue: true
+      # Add your Google GenAI API key and other environment variables in Render dashboard
+      # - key: GOOGLE_GENAI_API_KEY
+      #   value: your-api-key-here
+      # - key: UPLOAD_FOLDER
+      #   value: /tmp/uploads  # Render uses ephemeral storage
+    healthCheckPath: /api/health
+    autoDeploy: true
 
-# Uncomment if using database
-# databases:
-#   - name: comes-db
-#     databaseName: comes
-#     user: comes_user
+# Note: File uploads on Render use ephemeral storage.
+# For production, consider using cloud storage (S3, etc.).

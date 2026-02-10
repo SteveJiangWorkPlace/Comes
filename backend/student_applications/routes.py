@@ -5,8 +5,8 @@ API routes for student application information processing
 import os
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
-from .services import StudentApplicationService
-from .models import StudentApplication
+from .services import StudentApplicationService, TranscriptVerificationService
+from .models import StudentApplication, TranscriptVerification
 
 student_bp = Blueprint('student_applications', __name__)
 service = None
@@ -29,6 +29,30 @@ def get_service():
                     return "Google GenAI service not initialized. Please set GOOGLE_GENAI_API_KEY environment variable."
             service = MockService()
     return service
+
+transcript_service = None
+
+def get_transcript_service():
+    """Lazy initialization of transcript verification service to handle missing API key"""
+    global transcript_service
+    if transcript_service is None:
+        try:
+            transcript_service = TranscriptVerificationService()
+        except (ValueError, ImportError) as e:
+            # Log error but allow application to start
+            print(f"Warning: Failed to initialize TranscriptVerificationService: {e}")
+            print("File upload will work, but verification will require GOOGLE_GENAI_API_KEY")
+            # Create a mock service that returns errors when verification is attempted
+            class MockTranscriptService:
+                def verify_transcript(self, files, upload_type):
+                    return {
+                        "error": "Google GenAI service not initialized. Please set GOOGLE_GENAI_API_KEY environment variable.",
+                        "metadata": {"status": "failed"}
+                    }
+                def generate_structured_transcript(self, verification_result):
+                    return "Google GenAI service not initialized. Please set GOOGLE_GENAI_API_KEY environment variable."
+            transcript_service = MockTranscriptService()
+    return transcript_service
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -235,3 +259,148 @@ def get_template():
     """
 
     return jsonify({'template': template}), 200
+
+
+@student_bp.route('/transcript/upload', methods=['POST'])
+def upload_transcript():
+    """
+    Upload transcript files for verification
+    Expected files based on upload_type:
+    - single: 'transcript' (bilingual)
+    - separate: 'transcript_zh' and 'transcript_en'
+    """
+    try:
+        # Get upload type from form data
+        upload_type = request.form.get('upload_type', 'single')
+        if upload_type not in ['single', 'separate']:
+            return jsonify({'error': 'Invalid upload_type. Must be "single" or "separate"'}), 400
+
+        # Determine required files based on upload type
+        if upload_type == 'single':
+            required_files = ['transcript']
+        else:
+            required_files = ['transcript_zh', 'transcript_en']
+
+        missing_files = []
+        uploaded_files = {}
+
+        for file_key in required_files:
+            if file_key not in request.files:
+                missing_files.append(file_key)
+                continue
+
+            file = request.files[file_key]
+            if file.filename == '':
+                missing_files.append(file_key)
+                continue
+
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                uploaded_files[file_key] = {
+                    'filename': filename,
+                    'filepath': filepath,
+                    'content_type': file.content_type
+                }
+            else:
+                return jsonify({
+                    'error': f'File type not allowed for {file_key}',
+                    'allowed_extensions': list(current_app.config['ALLOWED_EXTENSIONS'])
+                }), 400
+
+        if missing_files:
+            return jsonify({
+                'error': 'Missing required files',
+                'missing_files': missing_files,
+                'required_files': required_files
+            }), 400
+
+        # Create a new transcript verification record
+        verification = TranscriptVerification(
+            files=uploaded_files,
+            upload_type=upload_type,
+            status='uploaded'
+        )
+        verification.save()
+
+        return jsonify({
+            'message': 'Transcript files uploaded successfully',
+            'verification_id': verification.id,
+            'upload_type': upload_type,
+            'uploaded_files': {k: v['filename'] for k, v in uploaded_files.items()},
+            'next_step': {
+                'verify': f'/api/student-applications/transcript/verify/{verification.id}',
+                'status': f'/api/student-applications/transcript/{verification.id}'
+            }
+        }), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@student_bp.route('/transcript/verify/<verification_id>', methods=['POST'])
+def verify_transcript(verification_id):
+    """Verify uploaded transcript using Google GenAI"""
+    try:
+        verification = TranscriptVerification.get_by_id(verification_id)
+        if not verification:
+            return jsonify({'error': 'Transcript verification not found'}), 404
+
+        # Verify the transcript
+        verification_result = get_transcript_service().verify_transcript(
+            verification.files,
+            verification.upload_type
+        )
+
+        # Update verification with results
+        verification.verification_result = verification_result
+        verification.status = 'processing'
+        verification.save()
+
+        # Generate structured transcript summary
+        structured_result = get_transcript_service().generate_structured_transcript(verification_result)
+        verification.structured_result = structured_result
+        verification.status = 'completed'
+        verification.save()
+
+        return jsonify({
+            'message': 'Transcript verification completed successfully',
+            'verification_id': verification.id,
+            'status': verification.status,
+            'verification_result': verification_result,
+            'structured_result': structured_result
+        }), 200
+
+    except Exception as e:
+        # Update verification status to failed
+        if 'verification' in locals():
+            verification.status = 'failed'
+            verification.error_message = str(e)
+            verification.save()
+
+        return jsonify({'error': str(e)}), 500
+
+
+@student_bp.route('/transcript/<verification_id>', methods=['GET'])
+def get_transcript_verification(verification_id):
+    """Get transcript verification details and results"""
+    try:
+        verification = TranscriptVerification.get_by_id(verification_id)
+        if not verification:
+            return jsonify({'error': 'Transcript verification not found'}), 404
+
+        return jsonify(verification.to_dict()), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@student_bp.route('/transcript', methods=['GET'])
+def list_transcript_verifications():
+    """List all transcript verifications"""
+    verifications = TranscriptVerification.get_all()
+    return jsonify({
+        'verifications': [v.to_dict() for v in verifications],
+        'count': len(verifications)
+    })

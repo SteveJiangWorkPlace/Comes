@@ -56,6 +56,14 @@ export const STUDENT_APPLICATION_ENDPOINTS = {
   GET_TEMPLATE: '/api/student-applications/template',
 }
 
+// Transcript Verification endpoints
+export const TRANSCRIPT_VERIFICATION_ENDPOINTS = {
+  LIST: '/api/student-applications/transcript',
+  UPLOAD: '/api/student-applications/transcript/upload',
+  VERIFY: (id: string) => `/api/student-applications/transcript/verify/${id}`,
+  GET_VERIFICATION: (id: string) => `/api/student-applications/transcript/${id}`,
+}
+
 // Admin endpoints
 export const ADMIN_ENDPOINTS = {
   DASHBOARD: '/admin/dashboard',
@@ -94,6 +102,7 @@ export const ENDPOINTS = {
   MODULE2: MODULE2_ENDPOINTS,
   MODULE3: MODULE3_ENDPOINTS,
   STUDENT_APPLICATION: STUDENT_APPLICATION_ENDPOINTS,
+  TRANSCRIPT_VERIFICATION: TRANSCRIPT_VERIFICATION_ENDPOINTS,
   ADMIN: ADMIN_ENDPOINTS,
   API_KEYS: API_KEYS_ENDPOINTS,
   SYSTEM: SYSTEM_ENDPOINTS,

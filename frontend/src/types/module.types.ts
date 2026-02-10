@@ -26,13 +26,11 @@ export interface Module1State extends BaseModuleState<Module1Data> {
 }
 
 /**
- * Module 2 specific state
+ * Module 2 specific state (Transcript Verification)
  */
 export interface Module2State extends BaseModuleState<Module2Data> {
-  inputText: string
-  resultText: string
-  processingTime: number
-  // Additional module 2 specific fields
+  // Note: The actual implementation is in store/module2.store.ts
+  // This interface is kept for backward compatibility
 }
 
 /**
@@ -62,20 +60,11 @@ export interface Module1Data {
 }
 
 /**
- * Module 2 data structure (placeholder)
+ * Module 2 data structure (Transcript Verification)
  */
-export interface Module2Data {
-  id: string
-  input: string
-  output: string
-  confidence: number
-  processingTime: number
-  createdAt: string
-  metadata?: {
-    // TODO: Define module 2 specific metadata
-    [key: string]: any
-  }
-}
+import type { TranscriptVerificationResult } from './transcript.types'
+
+export type Module2Data = TranscriptVerificationResult
 
 /**
  * Module 3 data structure (placeholder)
