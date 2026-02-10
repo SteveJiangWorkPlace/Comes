@@ -18,8 +18,9 @@ import { LoginFormData } from '../types/auth.types'
  * Main authentication hook
  */
 export const useAuth = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
+  // Note: useNavigate and useLocation are removed from here
+  // They will be called inside the functions that actually need them
+  // or passed as parameters by the caller
 
   // Get auth store state and actions
   const isAuthenticated = useIsAuthenticated()
@@ -37,45 +38,49 @@ export const useAuth = () => {
   } = useAuthStore()
 
   /**
-   * Login function with redirect handling
+   * Login function (without redirect handling)
+   * Caller should handle navigation after successful login
    */
   const login = useCallback(
     async (credentials: LoginFormData) => {
       try {
         await storeLogin(credentials)
-
-        // Redirect to intended page or dashboard
-        const from = (location.state as any)?.from?.pathname || '/module1'
-        navigate(from, { replace: true })
+        // Navigation is now the responsibility of the caller
+        return true
       } catch (err) {
         // Error is already set in the store
         console.error('Login failed:', err)
+        return false
       }
     },
-    [storeLogin, navigate, location.state]
+    [storeLogin]
   )
 
   /**
-   * Logout function with cleanup
+   * Logout function (without redirect handling)
+   * Caller should handle navigation after logout
    */
   const logout = useCallback(async () => {
     await storeLogout()
-    navigate('/login', { replace: true })
-  }, [storeLogout, navigate])
+    // Navigation is now the responsibility of the caller
+  }, [storeLogout])
 
   /**
-   * Register function with auto-login
+   * Register function (without auto-login redirect)
+   * Caller should handle navigation after successful registration
    */
   const register = useCallback(
     async (data: { username: string; email: string; password: string }) => {
       try {
         await storeRegister(data)
-        navigate('/module1', { replace: true })
+        // Navigation is now the responsibility of the caller
+        return true
       } catch (err) {
         console.error('Registration failed:', err)
+        return false
       }
     },
-    [storeRegister, navigate]
+    [storeRegister]
   )
 
   /**
