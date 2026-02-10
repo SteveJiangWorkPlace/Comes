@@ -3,10 +3,81 @@ API routes for student application information processing
 """
 
 import os
+from typing import Any, Dict, Optional
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from .services import StudentApplicationService, TranscriptVerificationService
 from .models import StudentApplication, TranscriptVerification
+
+
+def api_response(
+    success: bool = True,
+    data: Optional[Any] = None,
+    message: Optional[str] = None,
+    error: Optional[Dict[str, Any]] = None,
+    status_code: int = 200,
+    **kwargs
+):
+    """Standard API response format
+
+    Args:
+        success: Whether the request was successful
+        data: The response data
+        message: Optional success message
+        error: Optional error details
+        status_code: HTTP status code
+        **kwargs: Additional metadata
+
+    Returns:
+        Flask response with standardized format
+    """
+    response = {
+        "success": success,
+        "data": data,
+        "message": message,
+        "error": error,
+        **kwargs
+    }
+    # Remove None values
+    response = {k: v for k, v in response.items() if v is not None}
+    return jsonify(response), status_code
+
+
+def api_error(
+    message: str,
+    status: int = 500,
+    code: str = "INTERNAL_ERROR",
+    details: Optional[Any] = None,
+    validation_errors: Optional[list] = None
+):
+    """Standard API error response
+
+    Args:
+        message: Error message
+        status: HTTP status code
+        code: Error code for programmatic handling
+        details: Additional error details
+        validation_errors: List of validation errors
+
+    Returns:
+        Flask error response
+    """
+    error = {
+        "message": message,
+        "status": status,
+        "code": code.upper(),
+    }
+
+    if details:
+        error["details"] = details
+    if validation_errors:
+        error["validationErrors"] = validation_errors
+
+    return api_response(
+        success=False,
+        error=error,
+        status_code=status
+    )
 
 student_bp = Blueprint('student_applications', __name__)
 service = None
@@ -63,10 +134,12 @@ def allowed_file(filename):
 def list_applications():
     """List all processed applications"""
     applications = StudentApplication.get_all()
-    return jsonify({
-        'applications': [app.to_dict() for app in applications],
-        'count': len(applications)
-    })
+    return api_response(
+        data={
+            'applications': [app.to_dict() for app in applications],
+            'count': len(applications)
+        }
+    )
 
 @student_bp.route('/upload', methods=['POST'])
 def upload_files():
@@ -100,17 +173,23 @@ def upload_files():
                     'content_type': file.content_type
                 }
             else:
-                return jsonify({
-                    'error': f'File type not allowed for {file_key}',
-                    'allowed_extensions': list(current_app.config['ALLOWED_EXTENSIONS'])
-                }), 400
+                return api_error(
+                    message=f'File type not allowed for {file_key}',
+                    status=400,
+                    code='INVALID_FILE_TYPE',
+                    details={'allowed_extensions': list(current_app.config['ALLOWED_EXTENSIONS'])}
+                )
 
         if missing_files:
-            return jsonify({
-                'error': 'Missing required files',
-                'missing_files': missing_files,
-                'required_files': required_files
-            }), 400
+            return api_error(
+                message='Missing required files',
+                status=400,
+                code='MISSING_FILES',
+                details={
+                    'missing_files': missing_files,
+                    'required_files': required_files
+                }
+            )
 
         # Create a new application record
         application = StudentApplication(
@@ -119,18 +198,25 @@ def upload_files():
         )
         application.save()
 
-        return jsonify({
-            'message': 'Files uploaded successfully',
-            'application_id': application.id,
-            'uploaded_files': {k: v['filename'] for k, v in uploaded_files.items()},
-            'next_step': {
-                'analyze': f'/api/student-applications/analyze/{application.id}',
-                'status': f'/api/student-applications/{application.id}'
-            }
-        }), 201
+        return api_response(
+            data={
+                'application_id': application.id,
+                'uploaded_files': {k: v['filename'] for k, v in uploaded_files.items()},
+                'next_step': {
+                    'analyze': f'/api/student-applications/analyze/{application.id}',
+                    'status': f'/api/student-applications/{application.id}'
+                }
+            },
+            message='Files uploaded successfully',
+            status_code=201
+        )
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return api_error(
+            message=str(e),
+            status=500,
+            code='INTERNAL_SERVER_ERROR'
+        )
 
 @student_bp.route('/analyze/<application_id>', methods=['POST'])
 def analyze_application(application_id):
@@ -138,7 +224,11 @@ def analyze_application(application_id):
     try:
         application = StudentApplication.get_by_id(application_id)
         if not application:
-            return jsonify({'error': 'Application not found'}), 404
+            return api_error(
+                message='Application not found',
+                status=404,
+                code='NOT_FOUND'
+            )
 
         # Analyze the documents
         analysis_result = get_service().analyze_documents(application.files)
@@ -154,12 +244,14 @@ def analyze_application(application_id):
         application.status = 'completed'
         application.save()
 
-        return jsonify({
-            'message': 'Analysis completed successfully',
-            'application_id': application.id,
-            'status': application.status,
-            'analysis_summary': structured_summary
-        }), 200
+        return api_response(
+            data={
+                'application_id': application.id,
+                'status': application.status,
+                'analysis_summary': structured_summary
+            },
+            message='Analysis completed successfully'
+        )
 
     except Exception as e:
         # Update application status to failed
@@ -176,12 +268,20 @@ def get_application(application_id):
     try:
         application = StudentApplication.get_by_id(application_id)
         if not application:
-            return jsonify({'error': 'Application not found'}), 404
+            return api_error(
+                message='Application not found',
+                status=404,
+                code='NOT_FOUND'
+            )
 
-        return jsonify(application.to_dict()), 200
+        return api_response(data=application.to_dict())
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return api_error(
+            message=str(e),
+            status=500,
+            code='INTERNAL_SERVER_ERROR'
+        )
 
 @student_bp.route('/template', methods=['GET'])
 def get_template():
@@ -258,7 +358,7 @@ def get_template():
 - **联系电话**: `[请填写]`
     """
 
-    return jsonify({'template': template}), 200
+    return api_response(data={'template': template})
 
 
 @student_bp.route('/transcript/upload', methods=['POST'])
@@ -273,7 +373,11 @@ def upload_transcript():
         # Get upload type from form data
         upload_type = request.form.get('upload_type', 'single')
         if upload_type not in ['single', 'separate']:
-            return jsonify({'error': 'Invalid upload_type. Must be "single" or "separate"'}), 400
+            return api_error(
+                message='Invalid upload_type. Must be "single" or "separate"',
+                status=400,
+                code='INVALID_UPLOAD_TYPE'
+            )
 
         # Determine required files based on upload type
         if upload_type == 'single':
@@ -304,17 +408,23 @@ def upload_transcript():
                     'content_type': file.content_type
                 }
             else:
-                return jsonify({
-                    'error': f'File type not allowed for {file_key}',
-                    'allowed_extensions': list(current_app.config['ALLOWED_EXTENSIONS'])
-                }), 400
+                return api_error(
+                    message=f'File type not allowed for {file_key}',
+                    status=400,
+                    code='INVALID_FILE_TYPE',
+                    details={'allowed_extensions': list(current_app.config['ALLOWED_EXTENSIONS'])}
+                )
 
         if missing_files:
-            return jsonify({
-                'error': 'Missing required files',
-                'missing_files': missing_files,
-                'required_files': required_files
-            }), 400
+            return api_error(
+                message='Missing required files',
+                status=400,
+                code='MISSING_FILES',
+                details={
+                    'missing_files': missing_files,
+                    'required_files': required_files
+                }
+            )
 
         # Create a new transcript verification record
         verification = TranscriptVerification(
@@ -324,19 +434,26 @@ def upload_transcript():
         )
         verification.save()
 
-        return jsonify({
-            'message': 'Transcript files uploaded successfully',
-            'verification_id': verification.id,
-            'upload_type': upload_type,
-            'uploaded_files': {k: v['filename'] for k, v in uploaded_files.items()},
-            'next_step': {
-                'verify': f'/api/student-applications/transcript/verify/{verification.id}',
-                'status': f'/api/student-applications/transcript/{verification.id}'
-            }
-        }), 201
+        return api_response(
+            data={
+                'verification_id': verification.id,
+                'upload_type': upload_type,
+                'uploaded_files': {k: v['filename'] for k, v in uploaded_files.items()},
+                'next_step': {
+                    'verify': f'/api/student-applications/transcript/verify/{verification.id}',
+                    'status': f'/api/student-applications/transcript/{verification.id}'
+                }
+            },
+            message='Transcript files uploaded successfully',
+            status_code=201
+        )
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return api_error(
+            message=str(e),
+            status=500,
+            code='INTERNAL_SERVER_ERROR'
+        )
 
 
 @student_bp.route('/transcript/verify/<verification_id>', methods=['POST'])
@@ -345,7 +462,11 @@ def verify_transcript(verification_id):
     try:
         verification = TranscriptVerification.get_by_id(verification_id)
         if not verification:
-            return jsonify({'error': 'Transcript verification not found'}), 404
+            return api_error(
+                message='Transcript verification not found',
+                status=404,
+                code='NOT_FOUND'
+            )
 
         # Verify the transcript
         verification_result = get_transcript_service().verify_transcript(
@@ -364,13 +485,15 @@ def verify_transcript(verification_id):
         verification.status = 'completed'
         verification.save()
 
-        return jsonify({
-            'message': 'Transcript verification completed successfully',
-            'verification_id': verification.id,
-            'status': verification.status,
-            'verification_result': verification_result,
-            'structured_result': structured_result
-        }), 200
+        return api_response(
+            data={
+                'verification_id': verification.id,
+                'status': verification.status,
+                'verification_result': verification_result,
+                'structured_result': structured_result
+            },
+            message='Transcript verification completed successfully'
+        )
 
     except Exception as e:
         # Update verification status to failed
@@ -388,19 +511,29 @@ def get_transcript_verification(verification_id):
     try:
         verification = TranscriptVerification.get_by_id(verification_id)
         if not verification:
-            return jsonify({'error': 'Transcript verification not found'}), 404
+            return api_error(
+                message='Transcript verification not found',
+                status=404,
+                code='NOT_FOUND'
+            )
 
-        return jsonify(verification.to_dict()), 200
+        return api_response(data=verification.to_dict())
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return api_error(
+            message=str(e),
+            status=500,
+            code='INTERNAL_SERVER_ERROR'
+        )
 
 
 @student_bp.route('/transcript', methods=['GET'])
 def list_transcript_verifications():
     """List all transcript verifications"""
     verifications = TranscriptVerification.get_all()
-    return jsonify({
-        'verifications': [v.to_dict() for v in verifications],
-        'count': len(verifications)
-    })
+    return api_response(
+        data={
+            'verifications': [v.to_dict() for v in verifications],
+            'count': len(verifications)
+        }
+    )
