@@ -79,6 +79,28 @@ import {
   ExperimentOutlined,
   CompassOutlined,
   EnvironmentOutlined,
+  // Additional icons
+  SyncOutlined,
+  ArrowUpOutlined,
+  AuditOutlined,
+  DesktopOutlined,
+  HistoryOutlined,
+  SaveOutlined,
+  BookOutlined,
+  UpOutlined,
+  DownOutlined,
+  // More icons
+  BoldOutlined,
+  ItalicOutlined,
+  UnderlineOutlined,
+  UnorderedListOutlined,
+  OrderedListOutlined,
+  LinkOutlined,
+  MoreOutlined,
+  TeamOutlined,
+  PrinterOutlined,
+  ArrowLeftOutlined,
+  FileTextOutlined,
   // Fallback icon
   QuestionCircleOutlined,
 } from '@ant-design/icons'
@@ -175,6 +197,36 @@ const iconComponents = {
   experiment: ExperimentOutlined,
   compass: CompassOutlined,
   environment: EnvironmentOutlined,
+
+  // New icons
+  reload: SyncOutlined,
+  'arrow-up': ArrowUpOutlined,
+  activity: LineChartOutlined,
+  setting: SettingOutlined, // alias for settings
+  audit: AuditOutlined,
+  monitor: DesktopOutlined,
+  history: HistoryOutlined,
+  save: SaveOutlined,
+  chart: BarChartOutlined, // alias for barChart
+  book: BookOutlined,
+  hash: TagOutlined,
+  'chevron-up': UpOutlined,
+  'chevron-down': DownOutlined,
+
+  // More icons
+  refresh: SyncOutlined,
+  files: FileOutlined,
+  'file-text': FileTextOutlined,
+  bold: BoldOutlined,
+  italic: ItalicOutlined,
+  underline: UnderlineOutlined,
+  'unordered-list': UnorderedListOutlined,
+  'ordered-list': OrderedListOutlined,
+  link: LinkOutlined,
+  more: MoreOutlined,
+  team: TeamOutlined,
+  print: PrinterOutlined,
+  'arrow-left': ArrowLeftOutlined,
 
   // Fallback
   unknown: QuestionCircleOutlined,

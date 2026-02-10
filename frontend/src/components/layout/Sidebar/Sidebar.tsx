@@ -38,37 +38,40 @@ const Sidebar: React.FC<SidebarProps> = ({
   const sidebarRef = useRef<HTMLDivElement>(null)
 
   // Menu items configuration
-  const menuItems = useMemo(() => [
-    {
-      key: 'module1',
-      label: '模块一',
-      icon: 'dashboard',
-      path: '/module1',
-      role: ['user', 'admin'],
-    },
-    {
-      key: 'module2',
-      label: '模块二',
-      icon: 'barChart',
-      path: '/module2',
-      role: ['user', 'admin'],
-    },
-    {
-      key: 'module3',
-      label: '模块三',
-      icon: 'file',
-      path: '/module3',
-      role: ['user', 'admin'],
-    },
-    {
-      key: 'admin',
-      label: '管理员',
-      icon: 'setting',
-      path: '/admin',
-      role: ['admin'],
-      showBadge: true,
-    },
-  ], [])
+  const menuItems = useMemo(
+    () => [
+      {
+        key: 'module1',
+        label: '模块一',
+        icon: 'dashboard',
+        path: '/module1',
+        role: ['user', 'admin'],
+      },
+      {
+        key: 'module2',
+        label: '模块二',
+        icon: 'barChart',
+        path: '/module2',
+        role: ['user', 'admin'],
+      },
+      {
+        key: 'module3',
+        label: '模块三',
+        icon: 'file',
+        path: '/module3',
+        role: ['user', 'admin'],
+      },
+      {
+        key: 'admin',
+        label: '管理员',
+        icon: 'setting',
+        path: '/admin',
+        role: ['admin'],
+        showBadge: true,
+      },
+    ],
+    []
+  )
 
   // Update active key based on current route
   useLayoutEffect(() => {

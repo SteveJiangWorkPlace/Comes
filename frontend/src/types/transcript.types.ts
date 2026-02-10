@@ -6,16 +6,16 @@
  * Course type classification
  */
 export type CourseType =
-  | 'core'           // 核心课程
-  | 'elective'       // 选修课程
-  | 'major'          // 专业课程
-  | 'general'        // 通识课程
-  | 'required'       // 必修课程
-  | 'optional'       // 可选课程
-  | 'practical'      // 实践课程
-  | 'thesis'         // 论文/毕业设计
-  | 'internship'     // 实习课程
-  | 'language'       // 语言课程
+  | 'core' // 核心课程
+  | 'elective' // 选修课程
+  | 'major' // 专业课程
+  | 'general' // 通识课程
+  | 'required' // 必修课程
+  | 'optional' // 可选课程
+  | 'practical' // 实践课程
+  | 'thesis' // 论文/毕业设计
+  | 'internship' // 实习课程
+  | 'language' // 语言课程
 
 /**
  * Course type with Chinese and English labels

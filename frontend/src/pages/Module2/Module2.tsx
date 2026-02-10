@@ -3,13 +3,11 @@
  * AI-powered transcript verification with Google Gemini
  */
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import classNames from 'classnames'
 import AppLayout from '../../components/layout/AppLayout/AppLayout'
 import Card from '../../components/ui/Card/Card'
 import Button from '../../components/ui/Button/Button'
-import Input from '../../components/ui/Input/Input'
-import Textarea from '../../components/ui/Textarea/Textarea'
 import Icon from '../../components/ui/Icon/Icon'
 import { useModule2Store } from '../../store/module2.store'
 import type { CourseInfo, Semester } from '../../types/transcript.types'
@@ -28,7 +26,6 @@ const Module2: React.FC = () => {
     uploadProgress,
     uploadError,
     selectedSemesterIndex,
-    selectedCourseIndex,
     showRawData,
     showConfidenceScores,
     verificationOptions,
@@ -37,15 +34,11 @@ const Module2: React.FC = () => {
     // Actions
     setUploadType,
     setFile,
-    clearFiles,
     uploadAndVerify,
-    verifyTranscript,
     setSelectedSemester,
-    setSelectedCourse,
     toggleRawData,
     toggleConfidenceScores,
     updateVerificationOptions,
-    copyToClipboard,
     copyCourseInfo,
     copySemesterInfo,
     copyStudentInfo,
@@ -63,7 +56,7 @@ const Module2: React.FC = () => {
   const handleFileSelect = (
     fileKey: keyof typeof files,
     event: React.ChangeEvent<HTMLInputElement>,
-    ref?: React.RefObject<HTMLInputElement>
+    ref?: React.RefObject<HTMLInputElement | null>
   ) => {
     const selectedFile = event.target.files?.[0]
     if (selectedFile) {
@@ -100,10 +93,7 @@ const Module2: React.FC = () => {
   }
 
   // Handle copy action with feedback
-  const handleCopyWithFeedback = async (
-    copyFn: () => Promise<void>,
-    successMessage: string
-  ) => {
+  const handleCopyWithFeedback = async (copyFn: () => Promise<void>, successMessage: string) => {
     try {
       await copyFn()
       alert(successMessage)
@@ -175,7 +165,7 @@ const Module2: React.FC = () => {
   }
 
   // Render course card
-  const renderCourseCard = (course: CourseInfo, index: number, semesterIndex: number) => {
+  const renderCourseCard = (course: CourseInfo, index: number, _semesterIndex: number) => {
     return (
       <Card key={course.id || index} className={styles.courseCard} variant="outlined">
         <div className={styles.courseHeader}>
@@ -187,10 +177,7 @@ const Module2: React.FC = () => {
             <button
               className={styles.copyButton}
               onClick={() =>
-                handleCopyWithFeedback(
-                  () => copyCourseInfo(course),
-                  '课程信息已复制到剪贴板'
-                )
+                handleCopyWithFeedback(() => copyCourseInfo(course), '课程信息已复制到剪贴板')
               }
               title="复制课程信息"
             >
@@ -223,9 +210,7 @@ const Module2: React.FC = () => {
             )}
           </div>
 
-          {course.description && (
-            <p className={styles.courseDescription}>{course.description}</p>
-          )}
+          {course.description && <p className={styles.courseDescription}>{course.description}</p>}
 
           {course.confidence && showConfidenceScores && (
             <div className={styles.courseConfidence}>
@@ -261,10 +246,7 @@ const Module2: React.FC = () => {
             <button
               className={styles.copyButton}
               onClick={() =>
-                handleCopyWithFeedback(
-                  () => copySemesterInfo(semester),
-                  '学期信息已复制到剪贴板'
-                )
+                handleCopyWithFeedback(() => copySemesterInfo(semester), '学期信息已复制到剪贴板')
               }
               title="复制学期信息"
             >
@@ -385,9 +367,7 @@ const Module2: React.FC = () => {
                     >
                       <Icon name="file" />
                       <span>单文件上传（双语）</span>
-                      <p className={styles.uploadTypeDescription}>
-                        同一文件包含中文和英文内容
-                      </p>
+                      <p className={styles.uploadTypeDescription}>同一文件包含中文和英文内容</p>
                     </button>
                     <button
                       className={classNames(styles.uploadTypeButton, {
@@ -397,9 +377,7 @@ const Module2: React.FC = () => {
                     >
                       <Icon name="files" />
                       <span>分开上传</span>
-                      <p className={styles.uploadTypeDescription}>
-                        分别上传中文和英文成绩单
-                      </p>
+                      <p className={styles.uploadTypeDescription}>分别上传中文和英文成绩单</p>
                     </button>
                   </div>
                 </div>
@@ -494,9 +472,7 @@ const Module2: React.FC = () => {
                                 ref={fileInputZhRef}
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={e =>
-                                  handleFileSelect('transcriptZh', e, fileInputZhRef)
-                                }
+                                onChange={e => handleFileSelect('transcriptZh', e, fileInputZhRef)}
                                 className={styles.fileInput}
                               />
                             </div>
@@ -542,9 +518,7 @@ const Module2: React.FC = () => {
                                 ref={fileInputEnRef}
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={e =>
-                                  handleFileSelect('transcriptEn', e, fileInputEnRef)
-                                }
+                                onChange={e => handleFileSelect('transcriptEn', e, fileInputEnRef)}
                                 className={styles.fileInput}
                               />
                             </div>
@@ -586,9 +560,7 @@ const Module2: React.FC = () => {
                             className={classNames(styles.optionButton, {
                               [styles.active]: verificationOptions.preferredLanguage === 'zh',
                             })}
-                            onClick={() =>
-                              updateVerificationOptions({ preferredLanguage: 'zh' })
-                            }
+                            onClick={() => updateVerificationOptions({ preferredLanguage: 'zh' })}
                           >
                             中文优先
                           </button>
@@ -596,9 +568,7 @@ const Module2: React.FC = () => {
                             className={classNames(styles.optionButton, {
                               [styles.active]: verificationOptions.preferredLanguage === 'en',
                             })}
-                            onClick={() =>
-                              updateVerificationOptions({ preferredLanguage: 'en' })
-                            }
+                            onClick={() => updateVerificationOptions({ preferredLanguage: 'en' })}
                           >
                             英文优先
                           </button>
@@ -673,11 +643,7 @@ const Module2: React.FC = () => {
                     leftIcon={<Icon name="rocket" />}
                     fullWidth
                   >
-                    {isUploading
-                      ? '上传中...'
-                      : isVerifying
-                        ? '认证中...'
-                        : '开始认证'}
+                    {isUploading ? '上传中...' : isVerifying ? '认证中...' : '开始认证'}
                   </Button>
                 </div>
               </div>
@@ -911,7 +877,8 @@ const Module2: React.FC = () => {
                         <div className={styles.historyItemMain}>
                           <div className={styles.historyTitle}>{item.studentName}</div>
                           <div className={styles.historyDescription}>
-                            {item.university} • {item.semesterCount}个学期 • {item.courseCount}门课程
+                            {item.university} • {item.semesterCount}个学期 • {item.courseCount}
+                            门课程
                           </div>
                           <div className={styles.historyMeta}>
                             <span className={styles.historyTime}>
@@ -976,7 +943,8 @@ const Module2: React.FC = () => {
           <p className={styles.footerNote}>
             <Icon name="info" size="sm" />
             <span>
-              使用Google Gemini AI进行成绩单识别，支持双语和分开的中英文成绩单。每个信息字段均可单独复制。
+              使用Google Gemini
+              AI进行成绩单识别，支持双语和分开的中英文成绩单。每个信息字段均可单独复制。
             </span>
           </p>
         </footer>

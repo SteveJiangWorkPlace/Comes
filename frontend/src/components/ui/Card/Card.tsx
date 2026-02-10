@@ -2,7 +2,7 @@ import React from 'react'
 import classNames from 'classnames'
 import styles from './Card.module.css'
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   /** Card variant */
   variant?: 'elevated' | 'outlined' | 'filled'
   /** Card padding */

@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import classNames from 'classnames'
 import { useAuth } from '../../hooks/useAuth'
 import { useForm } from '../../hooks'
 import Card from '../../components/ui/Card/Card'
@@ -22,7 +21,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
 
   // Form state using custom hook
-  const { form, errors, touched, handleChange, handleBlur, setFieldError, validate, reset } =
+  const { form, errors, touched, handleChange, handleBlur, validate, reset } =
     useForm({
       username: '',
       password: '',
@@ -155,7 +154,7 @@ const Login: React.FC = () => {
               onBlur={() => handleBlur('username')}
               error={touched.username && !!errors.username}
               errorMessage={errors.username}
-              leftIcon={<Icon name="user" />}
+              leftElement={<Icon name="user" />}
               size="large"
               fullWidth
               autoComplete="username"
@@ -174,8 +173,8 @@ const Login: React.FC = () => {
               onBlur={() => handleBlur('password')}
               error={touched.password && !!errors.password}
               errorMessage={errors.password}
-              leftIcon={<Icon name="lock" />}
-              rightIcon={
+              leftElement={<Icon name="lock" />}
+              rightElement={
                 <button
                   type="button"
                   className={styles.passwordToggle}

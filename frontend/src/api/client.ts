@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { ApiResponse, ApiError } from './types'
 
 // Create axios instance with default configuration
@@ -14,7 +14,7 @@ const createApiClient = (): AxiosInstance => {
 
   // Request interceptor
   apiClient.interceptors.request.use(
-    (config: AxiosRequestConfig) => {
+    (config: InternalAxiosRequestConfig) => {
       // Add authorization token if available
       const token = localStorage.getItem('auth_token')
       if (token && config.headers) {

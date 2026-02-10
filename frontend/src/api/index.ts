@@ -18,4 +18,6 @@ export type {
   TodoResponse,
 } from './types'
 export { ENDPOINTS } from './endpoints'
-export default apiClient
+
+// Re-export apiClient as default for backward compatibility
+export { apiClient as default } from './client'

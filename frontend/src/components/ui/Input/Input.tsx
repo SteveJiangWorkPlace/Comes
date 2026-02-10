@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react'
 import classNames from 'classnames'
 import styles from './Input.module.css'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   /** Input size */
   size?: 'small' | 'medium' | 'large'
   /** Input variant */

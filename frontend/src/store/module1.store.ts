@@ -133,7 +133,7 @@ export const useModule1Store = create<Module1State & Module1Actions>()(
 
       // API simulation actions
       fetchData: async () => {
-        const { page, limit, filters, sortBy, sortOrder, inputText } = get()
+        const { page, limit, filters, inputText } = get()
 
         set({ isLoading: true, error: null })
 

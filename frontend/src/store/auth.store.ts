@@ -5,7 +5,7 @@
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { api } from '../api/client'
+import { api, apiClient } from '../api/client'
 import { AuthResponse, LoginCredentials, User } from '../api/types'
 import { AuthState, LoginFormData } from '../types/auth.types'
 
@@ -47,7 +47,7 @@ export const useAuthStore = create<AuthStore>()(
 
         try {
           // Format credentials for API
-          const loginCredentials: LoginCredentials = {
+          const _loginCredentials: LoginCredentials = {
             username: credentials.username,
             password: credentials.password,
           }
@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthStore>()(
           localStorage.setItem('auth_token', mockResponse.token)
 
           // Configure API client with new token
-          api.defaults.headers.common['Authorization'] = `Bearer ${mockResponse.token}`
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${mockResponse.token}`
 
           console.log('Login successful:', mockResponse.user.username)
         } catch (error: any) {
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthStore>()(
           // api.post('/auth/logout')
 
           // Clear token from API client
-          delete api.defaults.headers.common['Authorization']
+          delete apiClient.defaults.headers.common['Authorization']
           localStorage.removeItem('auth_token')
 
           // Reset to initial state
@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error: any) {
           console.error('Logout error:', error)
           // Even if logout API fails, clear local state
-          delete api.defaults.headers.common['Authorization']
+          delete apiClient.defaults.headers.common['Authorization']
           localStorage.removeItem('auth_token')
           set(initialState)
         }
@@ -160,7 +160,7 @@ export const useAuthStore = create<AuthStore>()(
           })
 
           localStorage.setItem('auth_token', mockResponse.token)
-          api.defaults.headers.common['Authorization'] = `Bearer ${mockResponse.token}`
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${mockResponse.token}`
 
           console.log('Registration successful:', data.username)
         } catch (error: any) {
@@ -250,7 +250,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       reset: () => {
-        delete api.defaults.headers.common['Authorization']
+        delete apiClient.defaults.headers.common['Authorization']
         localStorage.removeItem('auth_token')
         set(initialState)
       },
@@ -271,7 +271,7 @@ export const useAuthStore = create<AuthStore>()(
             console.error('Error rehydrating auth store:', error)
           } else if (state?.token) {
             // Restore token to API client
-            api.defaults.headers.common['Authorization'] = `Bearer ${state.token}`
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${state.token}`
           }
         }
       },

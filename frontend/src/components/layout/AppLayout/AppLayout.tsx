@@ -9,7 +9,7 @@ import Sidebar from '../Sidebar/Sidebar'
 import styles from './AppLayout.module.css'
 
 interface AppLayoutProps {
-  children: React.ReactNode
+  children?: React.ReactNode
   /** Whether sidebar is initially collapsed */
   defaultCollapsed?: boolean
   /** Hide sidebar completely */

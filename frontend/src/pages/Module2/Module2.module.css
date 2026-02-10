@@ -725,7 +725,7 @@
   gap: var(--spacing-3);
 }
 
-.optionSlider input[type="range"] {
+.optionSlider input[type='range'] {
   flex: 1;
   height: 6px;
   -webkit-appearance: none;
@@ -735,7 +735,7 @@
   outline: none;
 }
 
-.optionSlider input[type="range"]::-webkit-slider-thumb {
+.optionSlider input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 18px;
@@ -745,7 +745,7 @@
   cursor: pointer;
 }
 
-.optionSlider input[type="range"]::-moz-range-thumb {
+.optionSlider input[type='range']::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: var(--radius-full);

@@ -74,7 +74,7 @@ export const storePersistConfig = {
 /**
  * Type exports for store states
  */
-export type { AuthState } from './auth.store'
+export type { AuthState } from '../types/auth.types'
 export type { Module1State } from './module1.store'
 export type { Module2State } from './module2.store'
 export type { Module3State } from './module3.store'
