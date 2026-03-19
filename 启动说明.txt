@@ -1,0 +1,39 @@
+文书工具启动说明
+============================
+
+项目结构说明：
+本项目已改为前后端分离应用。
+- 前端：`frontend/`
+- 后端：`backend/`
+- 不再使用旧版 Streamlit 单体入口
+
+安装依赖：
+```
+pip install -r requirements.txt
+```
+
+配置 API 密钥：
+```
+set GOOGLE_API_KEY=你的API密钥
+```
+
+启动方式：
+1. 启动后端
+```
+uvicorn backend.app:app --reload --host 127.0.0.1 --port 8000
+```
+
+2. 启动前端静态服务
+```
+python -m http.server 5500 --directory frontend
+```
+
+3. 打开页面
+```
+http://127.0.0.1:5500
+```
+
+当前模块：
+- PS修改
+- CV写作
+- RL写作（纯文本生成与复制）

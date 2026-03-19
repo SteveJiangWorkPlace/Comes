@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>木桃留学文书工作系统</title>
+    <link rel="icon" type="image/svg+xml" href="./logopic.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="./logopic-white.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="./logopic.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <aside class="sidebar">
+        <button class="nav-item active" data-module="ps-edit">PS修改</button>
+        <button class="nav-item" data-module="cv-write">CV写作</button>
+        <button class="nav-item" data-module="rl-write">RL写作</button>
+      </aside>
+
+      <section class="workspace">
+        <div class="global-status" id="globalStatusBar">
+          <div class="global-status-inner">
+            <span class="global-task" id="globalTaskText">当前任务：空闲</span>
+            <span class="global-state is-idle" id="globalStateText">空闲</span>
+          </div>
+        </div>
+
+        <div id="module-ps-edit" class="module-page active">
+          <header class="header"><h1>PS修改</h1></header>
+
+          <section class="card">
+            <h2>基础输入</h2>
+            <label>原始文书</label>
+            <textarea id="oldPs" rows="8" placeholder="粘贴原始PS"></textarea>
+
+            <div class="grid-2">
+              <div>
+                <label>目标学校</label>
+                <input id="targetSchool" type="text" placeholder="Columbia University" />
+              </div>
+              <div>
+                <label>目标专业</label>
+                <input id="targetMajor" type="text" placeholder="MS in Biostatistics" />
+              </div>
+            </div>
+
+            <label>新项目课程信息</label>
+            <textarea id="courseText" rows="6" placeholder="粘贴课程介绍"></textarea>
+
+            <label>写作策略（可选）</label>
+            <textarea id="strategyText" rows="4" placeholder="可留空"></textarea>
+
+            <label>图片（可选，多选）</label>
+            <input id="images" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+
+            <div class="actions">
+              <button id="generateBtn" class="primary">开始生成</button>
+            </div>
+
+            <div class="progress-wrap" id="progressWrap" hidden>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+              <div class="progress-meta">
+                <span id="progressText">0%</span>
+                <span id="progressMsg"></span>
+              </div>
+            </div>
+
+            <div id="status" class="status"></div>
+          </section>
+
+          <section class="card">
+            <h2>分段编辑</h2>
+            <div id="sections"></div>
+          </section>
+
+          <section class="card">
+            <h2>最终结果</h2>
+            <textarea id="finalPreview" rows="12" placeholder="确认段落后自动拼接"></textarea>
+            <div class="actions">
+              <button id="copyAllBtn">复制全文</button>
+              <button id="clearAllBtn">清空重来</button>
+            </div>
+          </section>
+        </div>
+
+        <div id="module-cv-write" class="module-page">
+          <header class="header"><h1>CV写作</h1></header>
+          <section class="card">
+            <h2>输入素材</h2>
+            <label>上传素材（PDF / PNG / JPG，可多选）</label>
+            <input id="cvFiles" type="file" accept=".pdf,image/png,image/jpeg,image/jpg" multiple />
+            <label>补充文本信息（可选）</label>
+            <textarea id="cvInput" rows="10" placeholder="在此粘贴补充的工作经历、项目描述或特殊要求"></textarea>
+            <div class="actions">
+              <button id="cvGenerateBtn" class="primary">开始生成</button>
+              <button id="cvGapBtn">缺失项分析</button>
+            </div>
+          </section>
+          <section class="card">
+            <h2>结果</h2>
+            <label>CV JSON</label>
+            <textarea id="cvJson" rows="14"></textarea>
+            <label>缺失项报告</label>
+            <textarea id="cvGapReport" rows="8"></textarea>
+            <label>更新指令</label>
+            <textarea id="cvFeedback" rows="5" placeholder="例如：把项目经历改成量化表达"></textarea>
+            <div class="actions">
+              <button id="cvUpdateBtn">执行修改</button>
+              <button id="cvWordBtn">下载Word</button>
+              <button id="cvCopyBtn">复制全文</button>
+            </div>
+            <div id="cvStatus" class="status"></div>
+          </section>
+        </div>
+
+        <div id="module-rl-write" class="module-page">
+          <header class="header"><h1>RL写作</h1></header>
+          <section class="card">
+            <h2>基础信息</h2>
+            <div class="grid-2">
+              <div>
+                <label>学生姓名</label>
+                <input id="rlStudentName" type="text" />
+              </div>
+              <div>
+                <label>学生性别</label>
+                <select id="rlStudentGender">
+                  <option value="女">女</option>
+                  <option value="男">男</option>
+                </select>
+              </div>
+            </div>
+            <label>推荐人信息（可直接粘贴原始文本，系统会自动整理落款）</label>
+            <textarea id="rlRecommenderRaw" rows="5" placeholder="例如：李明教授，数据科学系教授，XX大学，邮箱 xxx@xxx.edu，电话 138..."></textarea>
+            <label>素材文本</label>
+            <textarea id="rlDraftInput" rows="10"></textarea>
+            <div class="actions">
+              <button id="rlGenerateCnBtn" class="primary">开始生成中文草稿</button>
+            </div>
+          </section>
+          <section class="card">
+            <h2>草稿与成稿</h2>
+            <textarea id="rlDetailsJson" hidden></textarea>
+            <label>中文草稿</label>
+            <textarea id="rlChinese" rows="18"></textarea>
+            <div class="actions">
+              <button id="rlRefineCnBtn">执行中文修改</button>
+              <button id="rlTranslateEnBtn">翻译英文</button>
+            </div>
+            <label>英文成稿</label>
+            <textarea id="rlEnglish" rows="24"></textarea>
+            <div class="actions">
+              <button id="rlRefineEnBtn">执行英文修改</button>
+              <button id="rlCopyBtn">复制全文</button>
+            </div>
+            <div id="rlStatus" class="status"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script>
+      window.__API_BASE__ = window.__API_BASE__ || "http://127.0.0.1:8000/api";
+    </script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

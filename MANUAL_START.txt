@@ -1,0 +1,22 @@
+手动启动说明（前后端分离）
+
+1. 打开终端，进入项目目录
+cd "D:\IT Projects\文书工具"
+
+2. 启动后端
+.\.venv\Scripts\Activate.ps1
+uvicorn backend.app:app --reload --host 127.0.0.1 --port 8000
+
+3. 新开一个终端，进入同一项目目录，启动前端静态服务
+cd "D:\IT Projects\文书工具"
+python -m http.server 5500 --directory frontend
+
+4. 浏览器打开前端
+http://127.0.0.1:5500
+
+5. 后端健康检查（可选）
+http://127.0.0.1:8000/api/health
+
+补充：
+- 后端会读取环境变量 `GOOGLE_API_KEY`。
+- 当前前端只保留 `PS修改`、`CV写作`、`RL写作` 三个模块。
